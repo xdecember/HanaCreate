@@ -1,216 +1,183 @@
-<p align="center">
+<p align="left">
   <img src="assets/app-icon/hanacreate-1024.png" alt="HanaCreate app icon" width="128">
 </p>
 
-<h1 align="center">HanaCreate</h1>
+# HanaCreate
+
+HanaCreate is FOSS (Free and Open-Source Software) digital painting app for Android tablets Windows and Linux.
+In currently devlopment focusing on Android tablets. its own Rust drawing engine and GPU renderer, with a Kotlin and Jetpack Compose interface on Android from ProCraft.
+
+This repository forked frrom [artcraft-android/procraft](https://github.com/artcraft-android/procraft). HanaCreate is product name used for this fork. Some Rust crate names, Android and iPad package namespaces, build properties, and inherited files still use ProCraft repository.
+
+**Project status:** active development (If not lazy). The Android app and shared drawing engine contain working painting and editing features. Import compatibility, cross-platform validation, packaging, and product infrastructure are still in progress.
+
+## Project links and availability
+
+- Source code: [xdecember/HanaCreate](https://github.com/xdecember/HanaCreate)
+- Upstream project: [artcraft-android/procraft](https://github.com/artcraft-android/procraft)
+- License: [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE)
+
+The GitHub Actions release workflow starts when you push a `v*` tag. It requires the Android release-signing secrets, builds Android and desktop packages, then creates a draft GitHub Release with checksums. Someone must add release notes and publish that draft before downloads count as a public release. macOS, iPadOS, Windows ARM, and Linux ARM jobs depend on repository settings, secrets, and variables. A workflow run or a local tag is not a published release. Check the [HanaCreate releases page](https://github.com/xdecember/HanaCreate/releases) for downloads.
+
+## What works
+
+### Painting and editing
+
+- Pressure-sensitive brush strokes with size and opacity controls.
+- Brush library, brush sets, and Brush Studio.
+- Stroke stabilization, streamline, taper, tilt, and brush dynamics for HanaCreate brushes.
+- Layers, groups, opacity, visibility, alpha lock, clipping, and masks.
+- Blend modes in the drawing engine and GPU renderer.
+- Colour pickers, palettes, colour history, and eyedropper.
+- Selection, transform, crop, and drawing guides.
+- Adjustments and filters, including curves, colour balance, blur, sharpen, bloom, noise, liquify, and clone.
+- Text, shapes, gradients, and reference images.
+- Undo and redo, gallery stacks, artwork import, and image export.
+- Optional plugins, including a Krita brush plugin.
+
+## Demo
+(from ProCraft)
 
 <p align="center">
-  <b>An open-source painting app for Android tablets, Windows and Linux, with its own Rust engine and GPU renderer: a Kotlin/Jetpack Compose UI on Android, the same interface in egui on the desktop.</b><br>
-  Pressure-sensitive brushes, layers with blend modes, adjustments, selection and transform, animation and 3D painting, written from scratch.
+  <img src="docs/images/demo.webp" alt="HanaCreate painting demonstration" width="100%">
 </p>
 
 <p align="center">
-  <a href="https://github.com/artcraft-android/procraft/releases"><img src="https://raw.githubusercontent.com/Kunzisoft/Github-badge/main/get-it-on-github.png" alt="Get it on GitHub" height="60"></a>
-  <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/artcraft-android/procraft"><img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="60"></a>
-  <a href="https://discord.gg/gypGes3Uca"><img src="docs/images/discord-badge.svg" alt="Join us on Discord" height="60"></a>
+  <img src="docs/images/canvas.jpg" alt="HanaCreate canvas and painting tools" width="100%">
 </p>
 
-<p align="center">
-  <a href="https://discord.gg/gypGes3Uca"><img alt="Discord: join the community" src="https://img.shields.io/badge/Discord-join%20the%20community-5865F2?style=flat&logo=discord&logoColor=white"></a>
-  <img alt="Rust engine" src="https://img.shields.io/badge/engine-Rust-lightblue?style=flat&logo=rust&logoColor=white">
-  <img alt="GPU renderer: wgpu" src="https://img.shields.io/badge/renderer-wgpu-lightblue?style=flat">
-  <img alt="Kotlin and Jetpack Compose" src="https://img.shields.io/badge/UI-Kotlin%20%C2%B7%20Jetpack%20Compose-blue?style=flat">
-  <img alt="Minimum: Android 8 (API 26)" src="https://img.shields.io/badge/min-Android%208%20%28API%2026%29-blue?style=flat">
-  <img alt="Target: Android 16 (API 36)" src="https://img.shields.io/badge/target-Android%2016%20%28API%2036%29-blue?style=flat">
-  <img alt="License: MIT OR Apache-2.0" src="https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue?style=flat">
-  <img alt="Desktop: Windows and Linux" src="https://img.shields.io/badge/desktop-Windows%20%C2%B7%20Linux-blue?style=flat">
-  <img alt="Status: beta" src="https://img.shields.io/badge/status-beta-lightblue?style=flat">
-</p>
+### Supported file workflows
 
-<p align="center">
-  <sub>From <a href="https://github.com/artcraft-android/procraft/releases">Releases</a>: Android tablets take the <code>arm64.apk</code> (the <code>legacy-armeabi-v7a.apk</code> is only for older 32-bit tablets), or Obtainium, for updates; Windows the <code>windows-x64</code> <code>.msi</code> installer or portable <code>.zip</code> (the <code>windows-arm64</code> ones are only for ARM laptops, such as Snapdragon ones: any other PC says "This app can't run on your PC"); Linux the <code>.AppImage</code>, the <code>.deb</code> or the <code>.tar.gz</code> (videos and PDFs there use the system's <code>ffmpeg</code> and <code>poppler-utils</code>); iPads the <code>ipados-unsigned.ipa</code>, with a sideloading tool (<a href="#installing-on-an-ipad">how</a>).</sub>
-</p>
+- Import and export common image formats, including PNG and JPEG.
+- Import PSD files.
+- Export PDF, TIFF, GIF, and MP4 through the existing export paths.
+- Import brush files such as ABR, GIMP brushes, Krita brushes, and Clip Studio Paint SUT files. Imported brushes are converted to HanaCreate's brush model unless a compatible plugin engine handles them.
+- Import Clip Studio Paint `.clip` documents. The importer reads document metadata, layer structure, raster content, vector source records, and supported V2 time-lapse snapshots. V1 time-lapse frames are not imported.
 
-<p align="center">
-  <a href="#painting">Painting</a> ·
-  <a href="#layers-and-colour">Layers &amp; colour</a> ·
-  <a href="#adjustments-and-transform">Adjustments &amp; transform</a> ·
-  <a href="#actions">Actions</a> ·
-  <a href="#planned-features">Planned features</a> ·
-  <a href="#building-instructions">Building</a>
-</p>
+### Platforms in the repository
 
-<br>
+| Platform | Current status |
+|---|---|
+| Android tablets | Main app target. Android application ID is `com.hanacreate`. Minimum Android version is 8.0 (API 26). |
+| Windows | Desktop app and packaging scripts are present. |
+| Linux | Desktop app and packaging scripts are present. |
+| iPad | SwiftUI app project and an unsigned IPA build script are present. Distribution and device validation remain limited. |
+| macOS desktop | Packaging scripts and an optional release workflow are present. It is not a validated public target. |
+| Phones | No separate phone app that pocket thingy. The current interface targets tablets. |
 
-<p align="center">
-  <img src="docs/images/demo.webp" alt="Dusk painted in HanaCreate from a blank canvas, at a person's pace: the Soft Airbrush picked in the brush library and its size set; colours picked on the Classic square; the sky filled indigo by dragging the colour onto the canvas and airbrushed in bands of purple, magenta, orange and gold; a new layer for a glow and one for the sun, a circle that snaps round and is filled; two ranges of hills outlined and filled; pines and birds inked; stars airbrushed and made to glow with Bloom; the Layers panel opened on its seven layers" width="100%">
-  <br>
-  <sub><b>Dusk</b>, painted from a blank canvas on a Lenovo Legion Tab: the brush library, the colour picker, the layers, a sun snapped round and filled, hills filled the same way, pines, stars with Bloom. About 1:20; the <a href="docs/images/demo.mp4">full video</a> (MP4, 2:21) shows every menu at close to real speed. Every stroke is a pen stroke with pressure, eased in and out, played by the <a href="tools/showcase">demo script</a>.</sub>
-</p>
+## Current compatibility work
 
-<br>
+Clip Studio Paint import is being tested against two sample documents. These tests describe those samples only. They do not establish complete compatibility with every CLIP document.
 
-<p align="center">
-  <img src="docs/images/canvas.jpg" alt="The finished Dusk on the canvas: a sky from deep indigo through purple, magenta and orange to gold, a pale sun with a soft glow, birds, two ranges of purple hills with dark pines, and stars; the top bar with Gallery and the tools, and the sidebar with the size and opacity sliders, undo and redo" width="100%">
-  <br>
-  <sub>The canvas: the tools along the top, size and opacity in the sidebar, the whole screen for the painting.</sub>
-</p>
-
-<br>
-
-## Painting
-
-<table>
-<tr>
-<td width="50%"><img src="docs/images/brushes.jpg" alt="The Brush library over Dusk: the sets Sketching, Inking, Drawing, Painting (chosen), Watercolour, Calligraphy, Airbrushing, Spray Paint, Charcoals, Textures and Abstract, each with its icon, and the Painting set's brushes with a preview stroke each"><br><sub>The brush library: eleven sets of our own brushes, each previewed with a stroke.</sub></td>
-<td width="50%"><img src="docs/images/studio.jpg" alt="The Brush Studio on Round Brush: the tabs from Stroke path to About this brush, the Shape tab with its shape source and input style, and the Drawing Pad with a pressure scribble"><br><sub>The Brush Studio: stroke path, stabilization, taper, shape, grain, rendering, wet mix, colour dynamics and more, tried out on the drawing pad.</sub></td>
-</tr>
-</table>
-
-<br>
-
-## Brush files
-
-Brushes come in from a file manager (open with HanaCreate) or from the brush library's **+ › Add from File**.
-
-| File Type | Parsing Method | Plugin Engine Support |
+| Area | Current | Remaining |
 |---|---|---|
-| `.brush`, `.brushset`, `.brushlibrary` | read as they are, every setting kept; edited in the Brush Studio | not needed |
-| `.abr` (Photoshop) | tips, textures and dynamics made into HanaCreate brushes | not yet |
-| `.gbr`, `.gih`, `.vbr` (GIMP) | tips (each image of a pipe, the shape of a generated brush) made into HanaCreate brushes | not yet |
-| `.kpp`, `.bundle` (Krita) | made into HanaCreate brushes | **Krita brushes** plugin: drawn as Krita draws them, with a Krita brush studio of its own |
-| `.sut`, `.sutg` (Clip Studio Paint) | made into HanaCreate brushes; textures it keeps encrypted come in as their previews | not yet |
+| Raster layers | Reads layer hierarchy, raster sources, and previews. | Validate more document variants and edge cases. |
+| Vector layers | Preserves original vector records and a raster projection for display and painting. | Editable vector paths and native brush-style replay are not implemented. |
+| Brush styles | The `clipfile-rs` dependency exposes BrushStyle and effector-graph data. | Connect the source records to HanaCreate's brush model and verify their behavior against Clip Studio Paint. |
+| Stroke dynamics | HanaCreate's own engine supports pressure, velocity, tilt, smoothing, and stabilization. | CLIP input-source flags and imported brush dynamics are not fully mapped or verified. |
+| V2 time-lapse | Imports the tested sample's 12 PNG snapshots into HanaCreate time-lapse storage as JPEG frames. | Original recording timing and the original frame encoding are not retained. or found better solution.|
+| V1 time-lapse | Retains the original source archive. The tested archive has one V1 time-lapse record with sequence value 15,869 across 11 compressed blobs. | Decode the serialized Offscreen payloads and reconstruct GMIK and GMID frames. This sample is not a WebP stream. |
+| Blend modes | The engine and renderer implement blend modes. | Some CLIP modes remain approximations. The two test documents use Normal on every layer, so they do not validate non-Normal import. |
+| Masks and animation | Native app code includes masks and animation-related features. | The two test documents do not contain these features, so CLIP import compatibility is unverified. |
 
-<sub>A brush made from another app's file keeps its look as closely as HanaCreate's engine allows; a plugin engine draws it the way that app does. Plugins are off until you turn them on in Prefs › Plugins.</sub>
+The tested V1 archive is 473,780,469 bytes. The importer has streamed and validated its 11 compressed blobs, which contain 565,314,008 decoded bytes. The decoded stream begins with a `20CE` marker and contains `GMIK` and `GMID` records with serialized `Offscreen` payloads and embedded JPEG signatures. This encoder does not use the WebP layout handled by the existing V2 frame indexer. HanaCreate does not yet reconstruct or play these V1 frames.
 
-Android application ID: `com.hanacreate` · App label: `HanaCreate`.
+The importer preserves the source `.clip` archive when it is within the current 512 MiB retention limit. This allows unsupported source data to remain available for later work. Preservation does not mean that HanaCreate can edit or replay that data, Still need more development.
 
-<br>
+## Work in progress
 
-## Layers and colour
+- Native HanaCreate document architecture and file format.
+- Complete 3D painting workflows and validation for OBJ and USDZ models.
+- Lossless vector editing and raster/vector hybrid layers.
+- CLIP BrushStyle and effector-graph integration.
+- Verified CLIP pressure, velocity, and stabilization behavior.
+- V1 time-lapse frame reconstruction.
+- More CLIP samples for blend modes, masks, animation, and unsupported layer types.
+- Cross-device performance and memory testing.
+- Platform-specific release and installation workflows.
+- Product identity cleanup across inherited ProCraft names and package metadata.
 
-<table>
-<tr>
-<td width="50%"><img src="docs/images/layers.jpg" alt="The Layers panel over Dusk: seven layers, each with its thumbnail (stars, pines, the near and far hills, the sun, its glow and the sky), their blend mode letters and visibility boxes, and the background colour"><br><sub>Layers with blend modes, opacity, alpha lock, clipping masks, masks and groups. Layers past what the GPU holds are kept compressed, so artworks with hundreds of layers open and paint smoothly.</sub></td>
-<td width="50%"><img src="docs/images/colour.jpg" alt="The Colors panel on its Disc tab: a hue ring around a saturation and brightness disc, the current and previous colours, and the Classic, Harmony, Value and Palettes tabs"><br><sub>Colour: disc, classic, harmony, value (with hex) and palettes.</sub></td>
-</tr>
-</table>
+## Not available yet from this repository
 
-<br>
+- Official app-store distribution or store listings.
+- An official HanaCreate Discord server, invite link, or community support channel.
+- A published release schedule or support guarantee.
+- Complete Clip Studio Paint document, brush, or time-lapse compatibility.
+- Editable imported CLIP vector paths.
+- V1 CLIP time-lapse playback.
+- Verified import of CLIP masks, animation tracks, and non-Normal blend modes.
+- A separate phone app.
 
-## Adjustments and transform
+## Build from source
 
-<table>
-<tr>
-<td width="50%"><img src="docs/images/adjust.jpg" alt="Hue, Saturation, Brightness on Dusk's sky: the hue moved to 40 percent turns the sky blue at the top and pink at the horizon, with the Hue, Saturation and Brightness sliders below"><br><sub>Hue, saturation, brightness on the sky layer, live. Also colour balance, curves, gradient map, blurs, noise, sharpen, bloom, glitch, halftone, chromatic aberration, liquify and clone, on the layer or painted on.</sub></td>
-<td width="50%"><img src="docs/images/transform.jpg" alt="Transform in Warp on the sun layer: a mesh with corner handles over the sun, and the toolbar with Freeform, Uniform, Distort and Warp, then Advanced Mesh, Flip Horizontal, Flip Vertical, Rotate 45, Fit to Canvas, Bilinear and Reset"><br><sub>Transform: freeform, uniform, distort and warp, with snapping. Selection: automatic, freehand, rectangle and ellipse, with feather.</sub></td>
-</tr>
-</table>
+### Android
 
-<br>
+Requirements include Rust, JDK 17 or newer, Android SDK, Android NDK, and `cargo-ndk`.
 
-## Actions
+```sh
+cd android
+./gradlew assembleDebug
+```
 
-<p align="center">
-  <img src="docs/images/actions.jpg" alt="The Actions panel on its Canvas tab over Dusk: Crop and Resize, the Animation Assist, Page Assist, Drawing Guide and Reference switches, Edit Drawing Guide, Flip horizontal, Flip vertical and Canvas information, under the Add, Canvas, Share, Video, Prefs and Help tabs" width="100%">
-  <br>
-  <sub>Actions: add files, photos and text; the canvas, its guides and assists; share as PNG, JPEG, PSD, PDF, TIFF, GIF or MP4; a time-lapse of every artwork; preferences and gesture controls.</sub>
-</p>
+For a release APK:
 
-<br>
+```sh
+cd android && ./gradlew assembleRelease -Pprocraft.abis=arm64-v8a
+```
 
-## Planned features
+The release build uses the configured signing key when one is provided. Without a release key, Gradle uses the debug signing key unless you request an unsigned build.
 
-HanaCreate is in beta, on Android tablets, on the desktop (Windows and Linux) and on the iPad.
+### Desktop
 
-| Area | Status |
+Run the desktop app from the repository root:
+
+```sh
+cargo run --release -p procraft-desktop
+```
+
+Package Windows with `packaging/windows/package.ps1`. Package Linux with `packaging/linux/package.sh`.
+
+### iPad
+
+The iPad project uses SwiftUI over the shared Rust core. Build an unsigned IPA on a Mac with Xcode and XcodeGen:
+
+```sh
+ios/build-ipa.sh
+```
+
+An unsigned IPA is not an App Store release. It requires a separate signing and installation process.
+
+### Tests
+
+Run the Rust workspace tests:
+
+```sh
+cargo test --workspace
+```
+
+Some GPU tests require a compatible graphics device. Device-specific Android and iPad behavior requires testing on those platforms.
+
+## Repository layout
+
+| Path | Contents |
 |---|---|
-| Canvas: the top bar, the sidebar (size, opacity, modify, undo, redo), full screen, gestures (pinch, rotate, quick fit, two- and three-finger taps, scrub to clear) | ✅ |
-| Brush engine: shape and grain sources, stroke path, stabilization, taper, rendering and glazes, wet mix, colour dynamics, pen pressure and tilt; the library and the Brush Studio | ✅ |
-| Layers: blend modes, opacity, alpha lock, clipping masks, masks, groups, merge, the reference layer; large artworks kept compressed off the GPU | ✅ |
-| Colour: disc, classic, harmony, value and palettes; history; eyedropper; filling by dragging the colour onto the canvas | ✅ |
-| Adjustments, each with its toolbar, on the layer or painted on | ✅ |
-| Selection (automatic, freehand, shapes, feather) and transform (freeform, uniform, distort, warp, snapping) | ✅ |
-| Shapes that snap clean, drawing guides and drawing assist (2D, isometric, perspective, symmetry), text | ✅ |
-| Animation and page assists, the reference window | ✅ |
-| Gallery: stacks, new-canvas presets, import and share (PNG, JPEG, PSD, PDF, TIFF, GIF, MP4), time-lapse | 🚧 nearly done |
-| Clip Studio Paint `.clip` import: raster layers, metadata, V2 time-lapse snapshots and preserved vector source records; V1 time-lapse and editable vector-path tools remain in progress | 🚧 |
-| 3D painting: OBJ and USDZ models, texture sets, painting on the mesh, lights and environments | 🚧 |
-| Desktop: Windows and Linux, the same interface with a mouse, a pen tablet and keyboard shortcuts; an installer, an AppImage and a .deb | 🚧 beta |
-| iPad: the same app in SwiftUI over the shared engine, with the Apple Pencil's hover, squeeze and barrel roll; an unsigned .ipa to sideload | 🚧 beta |
-| Plugins: `.procraft-plugin` files you import in Prefs › Plugins, each off until you turn it on and gone without a trace when you turn it off. Filters (a few lines of WGSL, under Adjustments) and sandboxed WebAssembly that changes how the app behaves, such as Interface, Touch offset and ColorDrop tools. How to write one: [docs/plugins.md](docs/plugins.md) | ✅ |
-| More for plugins: buttons that change the artwork (asking permission first), panels of their own, the colour picker drawn their way, kinds of artwork and of layer of their own, such as Vector layers | ✅ |
-| Brush engines in plugins: brush files another app's engine draws, drawn by a plugin as that app draws them, with a brush studio of its own, such as Krita brushes (Krita's pixel brush) | 🚧 |
-| Phones: their own app, HanaCreate Pocket (this one is for tablets) | ⬜ |
+| `crates/engine` | Document model, brush model, stroke processing, file formats, and geometry. |
+| `crates/gpu` | GPU canvas, rendering, compositing, and 3D scene support. |
+| `crates/core` | Shared application behavior, gallery, editing tools, exports, plugins, and time-lapse storage. |
+| `android` | Android application and Gradle build. |
+| `desktop` | Windows and Linux desktop application. |
+| `ios` | iPad application and build scripts. |
+| `plugins` | Optional plugin implementations. |
+| `docs` | Architecture notes, implementation status, and project documentation. |
 
-<sub>✅ works today · 🚧 in progress · ⬜ not started · 🚫 not planned</sub>
+## Documentation
 
-<br>
-
-## Installing on an iPad
-
-Apps don't install on an iPad straight from the web, so the iPad app (`procraft-<version>-ipados-unsigned.ipa` from [Releases](https://github.com/artcraft-android/procraft/releases)) goes on with a sideloading tool, which signs it with your own Apple ID:
-
-* **AltStore** (with a Windows PC or a Mac): install AltServer on the computer and, through it, AltStore on the iPad, then in AltStore's My Apps tap **+** and pick the .ipa.
-* **SideStore** (no computer once it is set up): install it as its own guide says, then in its My Apps tap **+** and pick the .ipa.
-* **Sideloadly** (Windows or Mac): plug the iPad in, drop the .ipa on Sideloadly, enter your Apple ID and press Start.
-
-The first time, iPadOS asks you to trust your Apple ID (Settings › General › VPN & Device Management) and, from iPadOS 16, to turn on Developer Mode (Settings › Privacy & Security). With a free Apple ID an app signed this way runs for 7 days before it must be refreshed (AltStore and SideStore do that by themselves while the computer or the app is reachable), and only 3 such apps can be installed at once.
-
-<br>
-
-## Building Instructions
-*One Gradle command builds the whole app: it compiles the Rust engine with [cargo-ndk](https://github.com/bbqsrc/cargo-ndk) and generates the Kotlin bindings.*
-
-* Clone this repository
-* Make sure you have at least 6 GB of free disk space
-* enter `android` and run `./gradlew assembleRelease -Pprocraft.abis=arm64-v8a`, or open that folder in Android Studio and press Run.
-* the desktop app: `cargo run --release -p procraft-desktop` from the repository's root; its installer and packages with `packaging/windows/package.ps1` (WiX v5) and `packaging/linux/package.sh` (nfpm, appimagetool).
-* the iPad app, on a Mac with Xcode and XcodeGen: `ios/build-ipa.sh` makes the unsigned .ipa.
-
-Build time dependencies:
-
-<details>
-  <summary>required tools</summary>
-
-  ```
-      rustup, with the aarch64-linux-android and x86_64-linux-android targets
-      cargo install cargo-ndk --version "^4" --locked
-      Android SDK (API 37) and NDK 30.0.16248370
-      JDK 17 or newer
-  ```
-</details>
-
-`cargo test --workspace` runs the engine's and the renderer's tests on the desktop.
-
-| Path | What |
-|---|---|
-| `crates/engine` | document, brushes, stroke geometry, canvas view (no GPU) |
-| `crates/gpu` | wgpu renderer: layers, strokes, compositing, display |
-| `crates/core` | what both apps share above the renderer: the canvas session, every touch and gesture, the tools' state (adjustments, transform, selection, crop, Recolor) and which of them a button ends, the gallery, presets, gradients, time-lapse, the brush library's files, the layer menu, exports and their file names, and keyboard shortcuts; with the Android app's UniFFI bindings |
-| `android` | the Android app (Gradle) |
-| `desktop` | the desktop app (egui) for Windows and Linux |
-| `ios` | the iPad app (SwiftUI over `crates/core`) |
-| `packaging` | the desktop app's Windows installer and Linux packages, as the release workflow builds them |
-
-*Builds are only tested on Windows 11.*
-
-<br>
+- [Architecture and implementation status](docs/HANACREATE_ARCHITECTURE.md)
+- [Plugin development](docs/plugins.md)
+- [Startup resource preparation](docs/STARTUP_RESOURCE_ADMISSION_AND_PRELOAD.md)
+- [Third-party notices](NOTICE)
+- [Asset attribution](ATTRIBUTION.md)
 
 ## License
 
-[MIT](LICENSE-MIT) OR [Apache-2.0](LICENSE-APACHE), at your option.
-
-- **Third-party material:** the Inter font, Lucide icons and the light panoramas the app bundles,
-  and the libraries it's built with, are listed in [NOTICE](NOTICE).
-- **Every asset**, with its author, source and licence, is in [ATTRIBUTION.md](ATTRIBUTION.md).
-- **Icons** drawn using vector outlines ([`tools/icons/draw_icons.py`](tools/icons/draw_icons.py),
-  to the [style guide](docs/icons/STYLE_GUIDE.md)).
-- **The demo painting**, *Dusk*, is our own, made in the app.
-
-<br>
-
-## Misc info for myself
-
-Try to use [semantic commit](https://kapeli.com/cheat_sheets/Semantic_Commits.docset/Contents/Resources/Documents/index)
-messages. Use `feat:` / `fix:` / `chore:` / `docs:` / etc.
+[MIT License](LICENSE-MIT) or [Apache License 2.0](LICENSE-APACHE), at your option. See [NOTICE](NOTICE) and [ATTRIBUTION.md](ATTRIBUTION.md) for third-party components and assets.
