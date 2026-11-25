@@ -98,7 +98,7 @@ import java.io.File
 import java.nio.ByteBuffer
 
 /** Which panel is open over the canvas. */
-private const val TAG = "ProCraft"
+private const val TAG = "HanaCreate"
 
 /** [CanvasViewModel.shownSet] while the library shows the Recent set. */
 const val RECENT_SET = -1
@@ -2795,7 +2795,7 @@ class CanvasViewModel(app: Application) : AndroidViewModel(app) {
                 CanvasSession.openModel(file, name, files, artwork, 0u)
                     .also(::loadModelTextures).also(::loadBrushes)
             }.onFailure {
-                AppLog.e("ProCraft", "opening a model", it)
+                AppLog.e("HanaCreate", "opening a model", it)
                 why = (it as? io.github.artcraftandroid.procraft.core.MobileException.File)?.reason?.substringAfter(": ", "")
             }.getOrNull()
         }
@@ -2970,7 +2970,20 @@ class CanvasViewModel(app: Application) : AndroidViewModel(app) {
 
     private suspend fun importOne(uri: android.net.Uri) {
         val resolver = getApplication<Application>().contentResolver
-        val head = withContext(Dispatchers.IO) { runCatching { resolver.openInputStream(uri)?.use { s -> ByteArray(4).also { s.read(it) } } }.getOrNull() }
+        val head = withContext(Dispatchers.IO) {
+            runCatching {
+                resolver.openInputStream(uri)?.use { stream ->
+                    ByteArray(8).also { bytes ->
+                        var read = 0
+                        while (read < bytes.size) {
+                            val count = stream.read(bytes, read, bytes.size - read)
+                            if (count < 0) break
+                            read += count
+                        }
+                    }
+                }
+            }.getOrNull()
+        }
         val name = withContext(Dispatchers.IO) { fileName(uri) }
         // a file that can't be read at all (one the app isn't allowed to) is no picture either
         if (head == null) {
@@ -2978,8 +2991,8 @@ class CanvasViewModel(app: Application) : AndroidViewModel(app) {
             return
         }
         // another program's palette
-        val foreign = head != null && String(head, Charsets.US_ASCII) == "ASEF" || name?.endsWith(".aco", ignoreCase = true) == true
-        val zip = head != null && head[0] == 'P'.code.toByte() && head[1] == 'K'.code.toByte()
+        val foreign = String(head, Charsets.US_ASCII).startsWith("ASEF") || name?.endsWith(".aco", ignoreCase = true) == true
+        val zip = head[0] == 'P'.code.toByte() && head[1] == 'K'.code.toByte()
         // a zip is copied once and told by the names it holds, read from its end: a big artwork
         // isn't read into memory to find out what it is
         val zipFile = if (zip) withContext(Dispatchers.IO) { cacheCopy(uri) } else null
@@ -3030,9 +3043,11 @@ class CanvasViewModel(app: Application) : AndroidViewModel(app) {
                     if (copy !== zipFile) withContext(Dispatchers.IO) { copy.delete() }
                 }
             }
-        } else if (head != null && String(head, Charsets.ISO_8859_1) == "8BPS") {
+        } else if (head?.let { String(it, Charsets.ISO_8859_1) }?.startsWith("CSFCHUNK") == true) {
+            importClip(uri, name)
+        } else if (head?.let { String(it, Charsets.ISO_8859_1) }?.startsWith("8BPS") == true) {
             importPsd(uri, name)
-        } else if (head != null && String(head, Charsets.ISO_8859_1) == "%PDF") {
+        } else if (head?.let { String(it, Charsets.ISO_8859_1) }?.startsWith("%PDF") == true) {
             importPdf(uri, name)
         } else if (zipFile != null) {
             // an artwork file of ours, or a layered package
@@ -3097,7 +3112,7 @@ class CanvasViewModel(app: Application) : AndroidViewModel(app) {
                     }
                 } ?: io.github.artcraftandroid.procraft.core.PagesOutcome.Unreadable
             } catch (e: Exception) {
-                AppLog.e("ProCraft", "importing a PDF", e)
+                AppLog.e("HanaCreate", "importing a PDF", e)
                 failure = e
                 io.github.artcraftandroid.procraft.core.PagesOutcome.Unreadable
             } finally {
@@ -3113,6 +3128,49 @@ class CanvasViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    private suspend fun importClip(uri: android.net.Uri, name: String?) {
+        val app = getApplication<Application>()
+        val fullBefore = io.github.artcraftandroid.procraft.core.storageFullWrites()
+        var failure: Throwable? = null
+        val outcome = withContext(Dispatchers.IO) {
+            val temp = File(app.cacheDir, "import-${System.nanoTime()}.clip")
+            val dir = importFolder()
+            try {
+                app.contentResolver.openInputStream(uri)?.use { input -> temp.outputStream().use { input.copyTo(it) } }
+                io.github.artcraftandroid.procraft.core.importClip(temp.path, dir.path, name?.substringBeforeLast('.')?.trim().orEmpty())
+            } catch (e: Exception) {
+                AppLog.e("HanaCreate", "importing a CLIP document", e)
+                failure = e
+                io.github.artcraftandroid.procraft.core.ClipOutcome.Unreadable
+            } finally {
+                temp.delete()
+            }.also { if (it !is io.github.artcraftandroid.procraft.core.ClipOutcome.Imported) dir.deleteRecursively() }
+        }
+        when (outcome) {
+            is io.github.artcraftandroid.procraft.core.ClipOutcome.Imported -> {
+                refreshGallery()
+                val warnings = listOfNotNull(
+                    outcome.approximatedBlends.takeIf { it != 0u }?.let { "$it blend mode(s) were approximated" },
+                    outcome.rasterizedLayers.takeIf { it != 0u }?.let { "$it non-raster layer(s) have raster previews" },
+                    outcome.preservedVectorLayers.takeIf { it != 0u }?.let { "$it hybrid vector layer(s) retain their original stroke records" },
+                    outcome.sourceClipPreserved.takeIf { it }?.let { "the original CLIP file was kept with the artwork" },
+                    outcome.sourceClipPreserved.takeIf { !it }?.let { "the original CLIP archive was not embedded; keep the source file separately" },
+                    outcome.importedTimeLapseFrames.takeIf { it != 0u }?.let { "time-lapse imported as $it still frames; original timing was not retained" },
+                    outcome.unsupportedLayers.takeIf { it != 0u }?.let { "$it layer(s) have unsupported content" },
+                    outcome.unsupportedTimeLapseRecords.takeIf { it != 0u }?.let { "$it time-lapse record(s) were not imported" },
+                    outcome.unsupportedAnimationTracks.takeIf { it != 0u }?.let { "$it animation track(s) were not imported" },
+                )
+                if (warnings.isNotEmpty()) message = "Imported with limitations: ${warnings.joinToString("; ")}."
+            }
+            is io.github.artcraftandroid.procraft.core.ClipOutcome.TooManyLayers ->
+                message = "This file has more layers than a canvas its size can hold (${outcome.most})."
+            io.github.artcraftandroid.procraft.core.ClipOutcome.TooLarge -> message = "This file's canvas is larger than this device can hold."
+            io.github.artcraftandroid.procraft.core.ClipOutcome.Unsupported -> message = "This kind of CLIP document can't be opened yet."
+            io.github.artcraftandroid.procraft.core.ClipOutcome.Unreadable ->
+                message = if (noRoom(fullBefore, failure)) NO_ROOM_TO_IMPORT else "This file can't be opened."
+        }
+    }
+
     /** A layered PSD from [uri] made into a new artwork, named after its file; a message says why if it can't be. */
     private suspend fun importPsd(uri: android.net.Uri, name: String?) {
         val app = getApplication<Application>()
@@ -3125,7 +3183,7 @@ class CanvasViewModel(app: Application) : AndroidViewModel(app) {
                 app.contentResolver.openInputStream(uri)?.use { input -> temp.outputStream().use { input.copyTo(it) } }
                 io.github.artcraftandroid.procraft.core.importPsd(temp.path, dir.path, name?.substringBeforeLast('.')?.trim().orEmpty())
             } catch (e: Exception) {
-                AppLog.e("ProCraft", "importing a PSD", e)
+                AppLog.e("HanaCreate", "importing a PSD", e)
                 failure = e
                 io.github.artcraftandroid.procraft.core.PsdOutcome.Unreadable
             } finally {
@@ -3189,7 +3247,7 @@ class CanvasViewModel(app: Application) : AndroidViewModel(app) {
         }.getOrElse {
             // (the device filling up meanwhile, whatever else wrote to it)
             copyNoRoom = it is java.io.IOException && it.message.orEmpty().contains("ENOSPC")
-            if (!importCancelled) AppLog.e("ProCraft", "copying a file in", it)
+            if (!importCancelled) AppLog.e("HanaCreate", "copying a file in", it)
             temp.delete()
             null
         }
@@ -3218,7 +3276,7 @@ class CanvasViewModel(app: Application) : AndroidViewModel(app) {
             }
             true
         } catch (e: Exception) {
-            AppLog.e("ProCraft", "importing a package", e)
+            AppLog.e("HanaCreate", "importing a package", e)
             false
         }
     }
@@ -3231,7 +3289,7 @@ class CanvasViewModel(app: Application) : AndroidViewModel(app) {
                 val out = File(File(getApplication<Application>().cacheDir, "exports").apply { mkdirs() }, "$base.$extension")
                 s.exportPackage(out.path, System.nanoTime().toULong(), timeLapse?.forPackage())
                 out
-            }.onFailure { AppLog.e("ProCraft", "exporting a package", it) }.getOrNull()
+            }.onFailure { AppLog.e("HanaCreate", "exporting a package", it) }.getOrNull()
         }
     }
 
@@ -3436,14 +3494,14 @@ class CanvasViewModel(app: Application) : AndroidViewModel(app) {
                     // left unfinished, the book leaves nothing
                     if (exportCancelled) return@runCatching emptyList<File>()
                     runCatching { CanvasSession.open(a.dir.path).use { s -> if (s.prepareOffscreen()) book.add(s) } }
-                        .onFailure { AppLog.e("ProCraft", "a page of a PDF", it) }
+                        .onFailure { AppLog.e("HanaCreate", "a page of a PDF", it) }
                     written(i + 1)
                 }
                 if (book.pages() == 0u) return@runCatching emptyList<File>()
                 book.finish()
                 listOf(out)
             }
-        }.onFailure { AppLog.e("ProCraft", "sharing a PDF", it) }.getOrDefault(emptyList())
+        }.onFailure { AppLog.e("HanaCreate", "sharing a PDF", it) }.getOrDefault(emptyList())
 
     /**
      * Opens artwork [a] to set up its animated export as [kind], going back to the gallery after;
@@ -4851,7 +4909,7 @@ class CanvasViewModel(app: Application) : AndroidViewModel(app) {
                     added++
                 }
             } catch (e: Exception) {
-                AppLog.e("ProCraft", "a video's frames", e)
+                AppLog.e("HanaCreate", "a video's frames", e)
             } finally {
                 retriever.release()
             }
@@ -6566,7 +6624,7 @@ class CanvasViewModel(app: Application) : AndroidViewModel(app) {
         return try {
             withContext(Dispatchers.Default) {
                 runCatching { io.github.artcraftandroid.procraft.core.readBrushesFile(file.path, name, reading) }
-                    .onFailure { AppLog.e("ProCraft", "reading a brush file", it) }
+                    .onFailure { AppLog.e("HanaCreate", "reading a brush file", it) }
                     .getOrNull()
             }
         } finally {
@@ -7189,7 +7247,7 @@ class CanvasViewModel(app: Application) : AndroidViewModel(app) {
         try {
             draw()
         } catch (fault: io.github.artcraftandroid.procraft.core.InternalException) {
-            AppLog.e("ProCraft", "a brush's sample stroke failed in the core", fault)
+            AppLog.e("HanaCreate", "a brush's sample stroke failed in the core", fault)
             null
         }
 
@@ -10176,13 +10234,8 @@ class CanvasViewModel(app: Application) : AndroidViewModel(app) {
         /** The version whose start last said the 32-bit build isn't the one for this tablet. */
         const val WRONG_BUILD_SAID = "wrong_build_said"
 
-        /**
-         * The layered package's file extensions, and their names in the Share lists: ours, and the
-         * other app's (the same package, so either opens in both). Files are told apart by what is
-         * in them, so `.pcraft` ones from before and other apps' `.procraft` zips still open.
-         */
-        const val OWN_EXTENSION = "procraft"
-        const val OWN_LABEL = "ProCraft"
+        const val OWN_EXTENSION = "hanacreate"
+        const val OWN_LABEL = "HanaCreate"
         private const val MODEL_REFERENCE_PIXELS = 720
         private const val SELECTION_X_RAY = "selection_x_ray"
         const val PACKAGE_EXTENSION = "procreate"

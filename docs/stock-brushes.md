@@ -1,11 +1,11 @@
 # The stock brush library
 
-ProCraft comes with 394 stock brushes in 37 sets, and with the brushes of its earlier versions in a
+HanaCreate comes with 394 stock brushes in 37 sets, and with the brushes of its earlier versions in a
 set of their own, Legacy, after them.
 
 ## How the stock brushes are made
 
-- **Settings.** Each stock brush is ProCraft's own variant of a familiar default brush type. Its
+- **Settings.** Each stock brush is HanaCreate's own variant of a familiar default brush type. Its
   settings are the brush studio's controls, modelled on that type, and every value is then moved by
   1% to 3%, up or down, so that no two brushes share a setting by chance and none copies another's.
   How far each value moves is fixed by the brush's name, so the library is the same in every build.
@@ -15,13 +15,13 @@ set of their own, Legacy, after them.
   the types they are modelled on, as far as those small changes take them.
 - **Names.** Brushes with plain descriptive names (pencil grades, Technical Pen, Soft Airbrush,
   Charcoal Block and the like) keep them. Every brush with a distinctive name has a name of its own.
-- **Shapes and grains.** Every shape and grain is drawn for ProCraft, in code: our own shapes and
+- **Shapes and grains.** Every shape and grain is drawn for HanaCreate, in code: our own shapes and
   patterns, given the proportions, tones and coverage each brush needs. Each is drawn the first time
   a brush needs it, and brushes that use the same one share it.
-- **Previews.** The library draws each brush's preview with ProCraft's own engine, from the brush's
+- **Previews.** The library draws each brush's preview with HanaCreate's own engine, from the brush's
   own settings.
 
-No brush file, shape or grain picture, preview or text from elsewhere is in ProCraft.
+No brush file, shape or grain picture, preview or text from elsewhere is in HanaCreate.
 
 The settings live in `crates/core/src/stock_brushes.rs`, written by `write_stock_brushes` in
 `crates/core/src/stock_library.rs`, which builds the brushes from them.

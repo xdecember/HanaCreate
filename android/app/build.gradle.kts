@@ -138,10 +138,10 @@ abstract class UniffiBindgen : DefaultTask() {
 android {
     namespace = "io.github.artcraftandroid.procraft"
     compileSdk = 37
-    ndkVersion = "29.0.14206865"
+    ndkVersion = "30.0.16248370"
 
     defaultConfig {
-        applicationId = "io.github.artcraftandroid.procraft"
+        applicationId = "com.hanacreate"
         minSdk = minApi
         targetSdk = 36
         versionCode = appVersionCode
@@ -161,9 +161,6 @@ android {
     }
 
     buildTypes {
-        debug {
-            applicationIdSuffix = ".debug"
-        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true

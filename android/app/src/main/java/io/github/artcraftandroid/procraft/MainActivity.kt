@@ -50,7 +50,7 @@ class MainActivity : ComponentActivity() {
         uri?.let(vm::importBrushes)
     }
     private val brushPickerOpener: () -> Unit = {
-        runCatching { brushFilePicker.launch(arrayOf("*/*")) }.onFailure { AppLog.e("ProCraft", "opening the brush file picker", it) }
+        runCatching { brushFilePicker.launch(arrayOf("*/*")) }.onFailure { AppLog.e("HanaCreate", "opening the brush file picker", it) }
     }
 
     // Project canvas: the presentation on a second display, and the displays coming and going

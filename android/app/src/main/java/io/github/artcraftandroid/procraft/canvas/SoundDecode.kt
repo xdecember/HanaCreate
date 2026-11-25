@@ -79,7 +79,7 @@ fun decodedSound(context: Context, uri: Uri): ByteArray? {
         if (count == 0 || channels <= 0) return null
         wavOf(samples, minOf(count, MOST_SECONDS * rate), rate)
     } catch (e: Exception) {
-        AppLog.w("ProCraft", "a sound couldn't be read", e)
+        AppLog.w("HanaCreate", "a sound couldn't be read", e)
         null
     } finally {
         runCatching { codec?.stop() }

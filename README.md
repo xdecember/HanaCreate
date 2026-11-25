@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/app-icon/procraft-1024.png" alt="ProCraft's app icon: a paintbrush in a warm-to-cool blend on a black tile" width="128">
+  <img src="assets/app-icon/hanacreate-1024.png" alt="HanaCreate app icon" width="128">
 </p>
 
-<h1 align="center">ProCraft</h1>
+<h1 align="center">HanaCreate</h1>
 
 <p align="center">
   <b>An open-source painting app for Android tablets, Windows and Linux, with its own Rust engine and GPU renderer: a Kotlin/Jetpack Compose UI on Android, the same interface in egui on the desktop.</b><br>
@@ -43,7 +43,7 @@
 <br>
 
 <p align="center">
-  <img src="docs/images/demo.webp" alt="Dusk painted in ProCraft from a blank canvas, at a person's pace: the Soft Airbrush picked in the brush library and its size set; colours picked on the Classic square; the sky filled indigo by dragging the colour onto the canvas and airbrushed in bands of purple, magenta, orange and gold; a new layer for a glow and one for the sun, a circle that snaps round and is filled; two ranges of hills outlined and filled; pines and birds inked; stars airbrushed and made to glow with Bloom; the Layers panel opened on its seven layers" width="100%">
+  <img src="docs/images/demo.webp" alt="Dusk painted in HanaCreate from a blank canvas, at a person's pace: the Soft Airbrush picked in the brush library and its size set; colours picked on the Classic square; the sky filled indigo by dragging the colour onto the canvas and airbrushed in bands of purple, magenta, orange and gold; a new layer for a glow and one for the sun, a circle that snaps round and is filled; two ranges of hills outlined and filled; pines and birds inked; stars airbrushed and made to glow with Bloom; the Layers panel opened on its seven layers" width="100%">
   <br>
   <sub><b>Dusk</b>, painted from a blank canvas on a Lenovo Legion Tab: the brush library, the colour picker, the layers, a sun snapped round and filled, hills filled the same way, pines, stars with Bloom. About 1:20; the <a href="docs/images/demo.mp4">full video</a> (MP4, 2:21) shows every menu at close to real speed. Every stroke is a pen stroke with pressure, eased in and out, played by the <a href="tools/showcase">demo script</a>.</sub>
 </p>
@@ -71,17 +71,19 @@
 
 ## Brush files
 
-Brushes come in from a file manager (open with ProCraft) or from the brush library's **+ › Add from File**.
+Brushes come in from a file manager (open with HanaCreate) or from the brush library's **+ › Add from File**.
 
 | File Type | Parsing Method | Plugin Engine Support |
 |---|---|---|
 | `.brush`, `.brushset`, `.brushlibrary` | read as they are, every setting kept; edited in the Brush Studio | not needed |
-| `.abr` (Photoshop) | tips, textures and dynamics made into ProCraft brushes | not yet |
-| `.gbr`, `.gih`, `.vbr` (GIMP) | tips (each image of a pipe, the shape of a generated brush) made into ProCraft brushes | not yet |
-| `.kpp`, `.bundle` (Krita) | made into ProCraft brushes | **Krita brushes** plugin: drawn as Krita draws them, with a Krita brush studio of its own |
-| `.sut`, `.sutg` (Clip Studio Paint) | made into ProCraft brushes; textures it keeps encrypted come in as their previews | not yet |
+| `.abr` (Photoshop) | tips, textures and dynamics made into HanaCreate brushes | not yet |
+| `.gbr`, `.gih`, `.vbr` (GIMP) | tips (each image of a pipe, the shape of a generated brush) made into HanaCreate brushes | not yet |
+| `.kpp`, `.bundle` (Krita) | made into HanaCreate brushes | **Krita brushes** plugin: drawn as Krita draws them, with a Krita brush studio of its own |
+| `.sut`, `.sutg` (Clip Studio Paint) | made into HanaCreate brushes; textures it keeps encrypted come in as their previews | not yet |
 
-<sub>A brush made from another app's file keeps its look as closely as ProCraft's engine allows; a plugin engine draws it the way that app does. Plugins are off until you turn them on in Prefs › Plugins.</sub>
+<sub>A brush made from another app's file keeps its look as closely as HanaCreate's engine allows; a plugin engine draws it the way that app does. Plugins are off until you turn them on in Prefs › Plugins.</sub>
+
+Android application ID: `com.hanacreate` · App label: `HanaCreate`.
 
 <br>
 
@@ -119,7 +121,7 @@ Brushes come in from a file manager (open with ProCraft) or from the brush libra
 
 ## Planned features
 
-ProCraft is in beta, on Android tablets, on the desktop (Windows and Linux) and on the iPad.
+HanaCreate is in beta, on Android tablets, on the desktop (Windows and Linux) and on the iPad.
 
 | Area | Status |
 |---|---|
@@ -132,13 +134,14 @@ ProCraft is in beta, on Android tablets, on the desktop (Windows and Linux) and 
 | Shapes that snap clean, drawing guides and drawing assist (2D, isometric, perspective, symmetry), text | ✅ |
 | Animation and page assists, the reference window | ✅ |
 | Gallery: stacks, new-canvas presets, import and share (PNG, JPEG, PSD, PDF, TIFF, GIF, MP4), time-lapse | 🚧 nearly done |
+| Clip Studio Paint `.clip` import: raster layers, metadata, V2 time-lapse snapshots and preserved vector source records; V1 time-lapse and editable vector-path tools remain in progress | 🚧 |
 | 3D painting: OBJ and USDZ models, texture sets, painting on the mesh, lights and environments | 🚧 |
 | Desktop: Windows and Linux, the same interface with a mouse, a pen tablet and keyboard shortcuts; an installer, an AppImage and a .deb | 🚧 beta |
 | iPad: the same app in SwiftUI over the shared engine, with the Apple Pencil's hover, squeeze and barrel roll; an unsigned .ipa to sideload | 🚧 beta |
 | Plugins: `.procraft-plugin` files you import in Prefs › Plugins, each off until you turn it on and gone without a trace when you turn it off. Filters (a few lines of WGSL, under Adjustments) and sandboxed WebAssembly that changes how the app behaves, such as Interface, Touch offset and ColorDrop tools. How to write one: [docs/plugins.md](docs/plugins.md) | ✅ |
 | More for plugins: buttons that change the artwork (asking permission first), panels of their own, the colour picker drawn their way, kinds of artwork and of layer of their own, such as Vector layers | ✅ |
 | Brush engines in plugins: brush files another app's engine draws, drawn by a plugin as that app draws them, with a brush studio of its own, such as Krita brushes (Krita's pixel brush) | 🚧 |
-| Phones: their own app, ProCraft Pocket (this one is for tablets) | ⬜ |
+| Phones: their own app, HanaCreate Pocket (this one is for tablets) | ⬜ |
 
 <sub>✅ works today · 🚧 in progress · ⬜ not started · 🚫 not planned</sub>
 
@@ -173,7 +176,7 @@ Build time dependencies:
   ```
       rustup, with the aarch64-linux-android and x86_64-linux-android targets
       cargo install cargo-ndk --version "^4" --locked
-      Android SDK (API 37) and NDK 29.0.14206865
+      Android SDK (API 37) and NDK 30.0.16248370
       JDK 17 or newer
   ```
 </details>

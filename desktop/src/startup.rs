@@ -109,7 +109,7 @@ pub fn init() {
         before(info);
     }));
     let again = if tried > 0 { format!(", started again with {tried} graphics backends tried") } else { String::new() };
-    log::info!("ProCraft {} on {} {}{again}", env!("PROCRAFT_VERSION"), std::env::consts::OS, std::env::consts::ARCH);
+    log::info!("HanaCreate {} on {} {}{again}", env!("PROCRAFT_VERSION"), std::env::consts::OS, std::env::consts::ARCH);
     #[cfg(windows)]
     native::watch();
 }
@@ -913,7 +913,7 @@ fn stop_with(what: &str, tablet: bool) {
         stop => stop,
     };
     let text = stopped_text(what, stop);
-    apart("procraft-stopped", move || files::tell("ProCraft stopped", &text));
+    apart("procraft-stopped", move || files::tell("HanaCreate stopped", &text));
 }
 
 /// This run's part in the record as it is now, if another thread lets go of it soon: a crash may
@@ -954,17 +954,17 @@ fn stopped_text(what: &str, stop: Stop) -> String {
         Stop::SayAnother | Stop::Again(_) => "\n\nStart it again to try another graphics backend.",
         Stop::SayAllTried => "\n\nEach graphics backend has been tried. Updating the graphics driver may help.",
         Stop::Tablet => {
-            "\n\nIt was the tablet's driver. Next time ProCraft starts without the driver's WinTab: the pen's pressure comes through Windows Ink, if the tablet's settings have it on."
+            "\n\nIt was the tablet's driver. Next time HanaCreate starts without the driver's WinTab: the pen's pressure comes through Windows Ink, if the tablet's settings have it on."
         }
         Stop::Say => "",
     };
-    format!("ProCraft stopped: {what}.{after}\n\nIts log is {}", files::app_dir().join(LOG).display())
+    format!("HanaCreate stopped: {what}.{after}\n\nIts log is {}", files::app_dir().join(LOG).display())
 }
 
 /// What the app says when no backend could draw the window, `why` each failed.
 pub fn no_gpu_text(why: &str) -> String {
     format!(
-        "No graphics backend could draw the window.\n\n{why}\n\nUpdating the graphics driver may help. ProCraft's log is {}",
+        "No graphics backend could draw the window.\n\n{why}\n\nUpdating the graphics driver may help. HanaCreate's log is {}",
         files::app_dir().join(LOG).display()
     )
 }
@@ -1433,11 +1433,11 @@ mod tests {
     #[test]
     fn a_stop_says_what_happened_and_where_the_log_is() {
         let text = super::stopped_text("wgpu error: Validation Error.\n", Stop::Say);
-        assert!(text.starts_with("ProCraft stopped: wgpu error: Validation Error."), "{text}");
+        assert!(text.starts_with("HanaCreate stopped: wgpu error: Validation Error."), "{text}");
         assert!(text.contains("procraft.log"), "{text}");
         assert!(!text.contains("graphics"), "{text}");
         let text = super::stopped_text("", Stop::Say);
-        assert!(text.starts_with("ProCraft stopped: something went wrong."), "{text}");
+        assert!(text.starts_with("HanaCreate stopped: something went wrong."), "{text}");
         let text = super::stopped_text("it crashed in igvk64.dll (exception 0xC0000005)", Stop::SayAnother);
         assert!(text.contains("Start it again to try another graphics backend."), "{text}");
         let text = super::stopped_text("it crashed in a driver (exception 0xC0000005)", Stop::SayAllTried);
@@ -1605,7 +1605,10 @@ mod tests {
     #[test]
     fn a_crash_in_the_tablets_driver_says_so_and_what_the_next_start_does() {
         let text = stopped_text("it crashed in wintab32.dll (exception 0xC0000005)", Stop::Tablet);
-        assert!(text.starts_with("ProCraft stopped: it crashed in wintab32.dll (exception 0xC0000005).\n\n"), "{text}");
+        assert!(
+            text.starts_with("HanaCreate stopped: it crashed in wintab32.dll (exception 0xC0000005).\n\n"),
+            "{text}"
+        );
         assert!(text.contains("tablet's driver") && text.contains("Windows Ink"), "{text}");
         assert!(!text.contains("graphics backend"), "{text}");
     }

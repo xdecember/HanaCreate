@@ -57,9 +57,9 @@ class SaveToGalleryActivity : ComponentActivity() {
                 val put = { if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) insert(f, video) else copyShared(f, video) }
                 // a file that can't go is said in the log, with why
                 runCatching(put)
-                    .onFailure { AppLog.e("ProCraft", "saving ${f.name} (${f.length()} bytes, $mime) to the gallery", it) }
+                    .onFailure { AppLog.e("HanaCreate", "saving ${f.name} (${f.length()} bytes, $mime) to the gallery", it) }
                     .getOrDefault(false)
-                    .also { if (!it) AppLog.w("ProCraft", "${f.name} (${f.length()} bytes, $mime) wasn't saved to the gallery") }
+                    .also { if (!it) AppLog.w("HanaCreate", "${f.name} (${f.length()} bytes, $mime) wasn't saved to the gallery") }
             }
             runOnUiThread {
                 val text = when {
@@ -129,7 +129,7 @@ class SaveToGalleryActivity : ComponentActivity() {
     companion object {
         private const val EXTRA_PATHS = "paths"
         private const val EXTRA_MIME = "mime"
-        private const val FOLDER = "ProCraft"
+        private const val FOLDER = "HanaCreate"
 
         @Suppress("DEPRECATION")
         private fun sharedFolder(video: Boolean) = if (video) Environment.DIRECTORY_MOVIES else Environment.DIRECTORY_PICTURES

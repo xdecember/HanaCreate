@@ -26,14 +26,14 @@ object VideoWriter {
         val caps = MediaCodecList(MediaCodecList.REGULAR_CODECS).codecInfos
             .filter { it.isEncoder && it.supportedTypes.any { t -> t.equals(mime, ignoreCase = true) } }
             .mapNotNull { runCatching { it.getCapabilitiesForType(mime).videoCapabilities }.getOrNull() }
-        if (caps.isEmpty()) return null.also { AppLog.w("ProCraft", "this device has no $mime encoder") }
+        if (caps.isEmpty()) return null.also { AppLog.w("HanaCreate", "this device has no $mime encoder") }
         var scale = minOf(1f, maxSide / maxOf(width, height).toFloat())
         repeat(40) {
             val (w, h) = aligned(width * scale, height * scale, align)
             if (caps.any { it.isSizeSupported(w, h) }) return w to h
             scale *= 0.9f
         }
-        return null.also { AppLog.w("ProCraft", "no $mime encoder here takes a ${width}x$height video made smaller (${sizesTaken(mime)})") }
+        return null.also { AppLog.w("HanaCreate", "no $mime encoder here takes a ${width}x$height video made smaller (${sizesTaken(mime)})") }
     }
 
     /** The sizes each encoder for [mime] takes, for the log: "name: widths x heights". */
@@ -79,7 +79,7 @@ object VideoWriter {
     ): Made {
         var first: File? = null
         val takers = encoders(mime, width, height).filter { only == null || it.name == only }
-        if (takers.isEmpty()) AppLog.w("ProCraft", "no $mime encoder here takes a ${width}x$height video (${sizesTaken(mime)})")
+        if (takers.isEmpty()) AppLog.w("HanaCreate", "no $mime encoder here takes a ${width}x$height video (${sizesTaken(mime)})")
         for (info in takers) {
             val looks = if (check) ArrayList<ByteArray>(count) else null
             if (!writeWith(info, out, width, height, fps, count, mime, bitsPerPixel, frame, looks)) {
@@ -92,16 +92,16 @@ object VideoWriter {
                 VideoFrames.Checked.Right -> return Made.CHECKED.also { first?.delete() }
                 VideoFrames.Checked.Unknown -> return Made.UNCHECKED.also { first?.delete() }
                 is VideoFrames.Checked.Wrong -> {
-                    AppLog.w("ProCraft", "${info.name}'s ${width}x$height video shows frame ${checked.frame} of ${looks.size} otherwise than it was given: made again")
+                    AppLog.w("HanaCreate", "${info.name}'s ${width}x$height video shows frame ${checked.frame} of ${looks.size} otherwise than it was given: made again")
                     if (first == null) first = File(out.path + ".first").also { if (!out.renameTo(it)) out.delete() } else out.delete()
                 }
             }
         }
         val kept = first ?: return Made.NONE.also {
-            if (takers.isNotEmpty()) AppLog.w("ProCraft", "no encoder made the ${width}x$height $mime video (${takers.joinToString { it.name }} tried)")
+            if (takers.isNotEmpty()) AppLog.w("HanaCreate", "no encoder made the ${width}x$height $mime video (${takers.joinToString { it.name }} tried)")
         }
         return if (kept.renameTo(out)) Made.UNCHECKED else Made.NONE.also {
-            AppLog.w("ProCraft", "the ${width}x$height video made couldn't be put in place at ${out.name}")
+            AppLog.w("HanaCreate", "the ${width}x$height video made couldn't be put in place at ${out.name}")
             kept.delete()
         }
     }
@@ -146,13 +146,13 @@ object VideoWriter {
         val codec = try {
             MediaCodec.createByCodecName(info.name)
         } catch (e: Exception) {
-            AppLog.w("ProCraft", "$what: the encoder couldn't be made", e)
+            AppLog.w("HanaCreate", "$what: the encoder couldn't be made", e)
             return false
         }
         val muxer = try {
             MediaMuxer(out.path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
         } catch (e: Exception) {
-            AppLog.w("ProCraft", "$what: its file ${out.name} couldn't be begun", e)
+            AppLog.w("HanaCreate", "$what: its file ${out.name} couldn't be begun", e)
             codec.release()
             return false
         }
@@ -215,20 +215,20 @@ object VideoWriter {
                 // the whole buffer is given back: a codec padding its rows or planes reads all of
                 // it, and one given less may leave the rest of the frame unfilled (green)
                 val size = codec.getInputBuffer(index)?.capacity()
-                    ?: return false.also { AppLog.w("ProCraft", "$what: no input buffer to write $step into") }
+                    ?: return false.also { AppLog.w("HanaCreate", "$what: no input buffer to write $step into") }
                 // without a picture to fill, the buffer could never be given back
                 val picture = codec.getInputImage(index)?.let { image ->
                     val planes = image.planes
-                    if (planes.size < 3) return false.also { AppLog.w("ProCraft", "$what: its input picture has ${planes.size} planes ($step)") }
+                    if (planes.size < 3) return false.also { AppLog.w("HanaCreate", "$what: its input picture has ${planes.size} planes ($step)") }
                     val plane = { k: Int -> YuvPlane(planes[k].buffer, planes[k].rowStride, planes[k].pixelStride) }
                     YuvPicture(plane(0), plane(1), plane(2), 0, 0, width, height)
                 } ?: run {
                     val f = codec.inputFormat
                     val int = { key: String -> if (f.containsKey(key)) f.getInteger(key) else 0 }
-                    val buffer = codec.getInputBuffer(index) ?: return false.also { AppLog.w("ProCraft", "$what: no input buffer to write $step into") }
+                    val buffer = codec.getInputBuffer(index) ?: return false.also { AppLog.w("HanaCreate", "$what: no input buffer to write $step into") }
                     val laid = if (f.containsKey(MediaFormat.KEY_COLOR_FORMAT)) f.getInteger(MediaFormat.KEY_COLOR_FORMAT) else input
                     Yuv.planesIn(buffer, laid, width, height, int(MediaFormat.KEY_STRIDE), int(MediaFormat.KEY_SLICE_HEIGHT))
-                } ?: return false.also { AppLog.w("ProCraft", "$what: it lays its input out as this can't write ($input)") }
+                } ?: return false.also { AppLog.w("HanaCreate", "$what: it lays its input out as this can't write ($input)") }
                 Yuv.write(pixels, width, height, picture)
                 codec.queueInputBuffer(index, 0, size, frameTime(n, fps), 0)
                 n++
@@ -238,7 +238,7 @@ object VideoWriter {
             codec.queueInputBuffer(nextInput(), 0, 0, frameTime(n, fps), MediaCodec.BUFFER_FLAG_END_OF_STREAM)
             patience.progressed()
             drain(true)
-            if (track < 0) AppLog.w("ProCraft", "$what: the encoder gave nothing back ($step)")
+            if (track < 0) AppLog.w("HanaCreate", "$what: the encoder gave nothing back ($step)")
             // its file ended here: one whose end couldn't be written (the storage full) is no video
             if (track >= 0) {
                 step = "its file ended"
@@ -247,7 +247,7 @@ object VideoWriter {
             }
             return track >= 0
         } catch (e: Exception) {
-            AppLog.w("ProCraft", "$what failed, $step", e)
+            AppLog.w("HanaCreate", "$what failed, $step", e)
             return false
         } finally {
             runCatching { codec.stop() }
@@ -320,7 +320,7 @@ object VideoWriter {
             }
             return track >= 0
         } catch (e: Exception) {
-            AppLog.e("ProCraft", "joining videos", e)
+            AppLog.e("HanaCreate", "joining videos", e)
             return false
         } finally {
             runCatching { if (track >= 0 && !stopped) muxer.stop() }

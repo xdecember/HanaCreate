@@ -1003,7 +1003,7 @@ private fun AboutBrush(vm: CanvasViewModel) {
                 }
             }
             Spacer(Modifier.height(21.dp))
-            Text("Made by ${about?.author?.takeIf { it.isNotBlank() } ?: "ProCraft"}", color = AboutName, fontSize = 20.sp, maxLines = 1)
+            Text("Made by ${about?.author?.takeIf { it.isNotBlank() } ?: "HanaCreate"}", color = AboutName, fontSize = 20.sp, maxLines = 1)
             Spacer(Modifier.height(25.dp))
             // the signature in grey, whatever its own colour
             about?.signature?.let {

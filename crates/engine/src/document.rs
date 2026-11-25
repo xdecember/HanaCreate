@@ -1666,6 +1666,13 @@ impl Document {
         self.layer_mut(id).and_then(|l| l.plugin.as_mut()).map(|p| p.data = data).is_some()
     }
 
+    pub fn set_plugin_layer(&mut self, id: LayerId, kind: String, data: Vec<u8>) -> bool {
+        self.layer_mut(id).is_some_and(|layer| {
+            layer.plugin = Some(PluginLayer { kind, data: Some(std::sync::Arc::new(data)) });
+            true
+        })
+    }
+
     /// Adds an empty layer above the current one (in its group) and makes it current. It is named
     /// after the number of entries the stack will have, so a deleted layer's number comes back.
     pub fn add_layer(&mut self) -> LayerId {

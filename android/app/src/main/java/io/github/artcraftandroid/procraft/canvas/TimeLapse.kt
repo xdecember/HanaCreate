@@ -118,7 +118,7 @@ class TimeLapse(artwork: File) {
         val flash = green > Yuv.UNFILLED_MOST && lastGreen < green / 4
         lastGreen = green
         if (flash) {
-            AppLog.w("ProCraft", "a time-lapse video's frame $i reads back unfilled here: the one before shows in its place")
+            AppLog.w("HanaCreate", "a time-lapse video's frame $i reads back unfilled here: the one before shows in its place")
             broken += clip.path
             picture.recycle()
             return null
@@ -144,14 +144,14 @@ class TimeLapse(artwork: File) {
             when (val f = frames.bitmap(at)) {
                 is VideoFrames.Frame.Shown -> Decoded(f.bitmap)
                 VideoFrames.Frame.Unfilled -> {
-                    if (broken.add(clip.path)) AppLog.w("ProCraft", "${File(clip.path).name}'s frame $at decodes unfilled here: the one before shows in its place")
+                    if (broken.add(clip.path)) AppLog.w("HanaCreate", "${File(clip.path).name}'s frame $at decodes unfilled here: the one before shows in its place")
                     Decoded(null)
                 }
                 VideoFrames.Frame.None -> null
             }
         } catch (e: Exception) {
             // a decoder that can't be used here: the system's reader from now on
-            AppLog.w("ProCraft", "${File(clip.path).name}'s frames can't be decoded here: the system's reader reads them", e)
+            AppLog.w("HanaCreate", "${File(clip.path).name}'s frames can't be decoded here: the system's reader reads them", e)
             undecodable += clip.path
             decoding?.second?.close()
             decoding = null
@@ -171,7 +171,7 @@ class TimeLapse(artwork: File) {
                 reading = clip.path to r
             }
         } catch (e: Exception) {
-            AppLog.e("ProCraft", "a time-lapse's video can't be opened here: ${File(clip.path).name}, ${File(clip.path).length()} bytes", e)
+            AppLog.e("HanaCreate", "a time-lapse's video can't be opened here: ${File(clip.path).name}, ${File(clip.path).length()} bytes", e)
             return null
         }
         val at = i - clip.first.toInt()
@@ -182,7 +182,7 @@ class TimeLapse(artwork: File) {
             val bytes = side(android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH) * side(android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT) * 4
             val together = if (bytes > 0) (RUN_BYTES / bytes).toInt().coerceIn(1, CLIP_RUN) else CLIP_RUN
             runCatching { retriever.getFramesAtIndex(at, minOf(together, clip.frames.toInt() - at)) }
-                .onFailure { AppLog.w("ProCraft", "a time-lapse video's frames by number", it) }.getOrNull().orEmpty()
+                .onFailure { AppLog.w("HanaCreate", "a time-lapse video's frames by number", it) }.getOrNull().orEmpty()
         }
         if (frames.isEmpty()) return alone(retriever, at, clip.frames.toInt())
         decoded?.second?.forEach { it.recycle() }
@@ -215,7 +215,7 @@ class TimeLapse(artwork: File) {
     /** Frame [at] of a video of [frames] read by itself: by its number (from Android 9), else by its time. */
     private fun alone(retriever: android.media.MediaMetadataRetriever, at: Int, frames: Int): Bitmap? =
         (if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.P) null else {
-            runCatching { retriever.getFrameAtIndex(at) }.onFailure { AppLog.w("ProCraft", "a time-lapse video's frame by number", it) }.getOrNull()
+            runCatching { retriever.getFrameAtIndex(at) }.onFailure { AppLog.w("HanaCreate", "a time-lapse video's frame by number", it) }.getOrNull()
         }) ?: frameAtTime(retriever, at, frames)
 
     /** The frames read together let go. */
@@ -229,7 +229,7 @@ class TimeLapse(artwork: File) {
         val length = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull()?.times(1000)
             ?: (frames * 1_000_000L / FPS)
         retriever.getFrameAtTime(at * length / frames, android.media.MediaMetadataRetriever.OPTION_CLOSEST)
-    }.onFailure { AppLog.w("ProCraft", "a time-lapse video's frame by time", it) }.getOrNull()
+    }.onFailure { AppLog.w("HanaCreate", "a time-lapse video's frame by time", it) }.getOrNull()
 
     /** The videos read again next time (they changed), and the one being read let go. */
     private fun forgetClips() = synchronized(clipLock) {
@@ -258,7 +258,7 @@ class TimeLapse(artwork: File) {
         val video = settings
         // what it was asked, and how it ended, in the log: a failure with the step it got to
         AppLog.i(
-            "ProCraft",
+            "HanaCreate",
             "exporting the time-lapse: ${picks.size} of $total frames${seconds?.let { " ($it s)" }.orEmpty()}, " +
                 "${video.side} at most, ${video.bitsPerPixel} bits a pixel, ${if (video.hevc) "HEVC" else "H.264"}",
         )
@@ -267,9 +267,9 @@ class TimeLapse(artwork: File) {
         val made = export(out, picks, total) { done -> going(done).also { if (!it) stopped = true } }
         val ms = android.os.SystemClock.elapsedRealtime() - started
         when {
-            stopped -> AppLog.i("ProCraft", "the time-lapse export stopped after $ms ms")
-            made -> AppLog.i("ProCraft", "the time-lapse exported in $ms ms: ${out.length()} bytes${unread.takeIf { it > 0 }?.let { ", $it frames unread" }.orEmpty()}")
-            else -> AppLog.w("ProCraft", "the time-lapse couldn't be exported (after $ms ms): ${failure ?: "the video wasn't made"}")
+            stopped -> AppLog.i("HanaCreate", "the time-lapse export stopped after $ms ms")
+            made -> AppLog.i("HanaCreate", "the time-lapse exported in $ms ms: ${out.length()} bytes${unread.takeIf { it > 0 }?.let { ", $it frames unread" }.orEmpty()}")
+            else -> AppLog.w("HanaCreate", "the time-lapse couldn't be exported (after $ms ms): ${failure ?: "the video wasn't made"}")
         }
         return made
     }
@@ -309,19 +309,19 @@ class TimeLapse(artwork: File) {
                 File(plan.path).delete()
                 return false
             }
-            if (made == null) AppLog.w("ProCraft", "the time-lapse's video of frames ${plan.frames.firstOrNull()} to ${plan.frames.lastOrNull()} wasn't made (${failure ?: "?"}): planned again")
+            if (made == null) AppLog.w("HanaCreate", "the time-lapse's video of frames ${plan.frames.firstOrNull()} to ${plan.frames.lastOrNull()} wasn't made (${failure ?: "?"}): planned again")
             plan = core.segmentMade(plan, (made?.first ?: 0).toUInt(), (made?.second ?: 0).toUInt(), made != null)
             if (made == null && plan == null) return null
         }
         // a video that couldn't be noted (or one gone): the frames out of them are made afresh
-        if (!core.allInVideos()) return null.also { AppLog.i("ProCraft", "the time-lapse's frames aren't all in its videos: made afresh") }
+        if (!core.allInVideos()) return null.also { AppLog.i("HanaCreate", "the time-lapse's frames aren't all in its videos: made afresh") }
         dropClipFrames()
         // a video a frame of which read back unfilled here (made before videos were read back as
         // they are made) isn't copied as it is: made afresh, with the frame before in its place
-        if (synchronized(clipLock) { broken.isNotEmpty() }) return null.also { AppLog.i("ProCraft", "a time-lapse video reads back unfilled here: made afresh") }
+        if (synchronized(clipLock) { broken.isNotEmpty() }) return null.also { AppLog.i("HanaCreate", "a time-lapse video reads back unfilled here: made afresh") }
         val parts = core.forPackage().segments.map(::File)
         if (parts.isNotEmpty() && VideoWriter.join(parts, out, FPS.toFloat())) return true
-        AppLog.w("ProCraft", "the time-lapse's ${parts.size} videos (${parts.sumOf { it.length() }} bytes) couldn't be put end to end: made afresh")
+        AppLog.w("HanaCreate", "the time-lapse's ${parts.size} videos (${parts.sumOf { it.length() }} bytes) couldn't be put end to end: made afresh")
         return null
     }
 
@@ -351,7 +351,7 @@ class TimeLapse(artwork: File) {
                 ?: return null.also { failure = "none of its first ${minOf(FIRST_TRIES, picks.size)} frames could be read (frame ${picks.first()}: ${core.frameFile(picks.first().toUInt()) != null} a picture, ${kept(picks.first())} kept)" }
             val fitted = VideoWriter.fit(first.width, first.height, video.side, mime, ALIGN)
                 ?: if (hevc && orH264) {
-                    AppLog.w("ProCraft", "no HEVC encoder here takes the time-lapse's ${first.width}x${first.height} frames: H.264 instead")
+                    AppLog.w("HanaCreate", "no HEVC encoder here takes the time-lapse's ${first.width}x${first.height} frames: H.264 instead")
                     mime = android.media.MediaFormat.MIMETYPE_VIDEO_AVC
                     VideoWriter.fit(first.width, first.height, video.side, mime, ALIGN)
                 } else {
@@ -378,7 +378,7 @@ class TimeLapse(artwork: File) {
                 frameBitmap.getPixels(pixels, 0, w, 0, 0, w, h)
                 true
             }
-            if (missed > 0) AppLog.w("ProCraft", "$missed of ${picks.size} time-lapse frames couldn't be read: the one before each shows in its place")
+            if (missed > 0) AppLog.w("HanaCreate", "$missed of ${picks.size} time-lapse frames couldn't be read: the one before each shows in its place")
             unread = missed
             val inRow = picks.last() - picks.first() == picks.size - 1
             if (made == VideoWriter.Made.CHECKED && missed == 0 && inRow) synchronized(clipLock) { checked += picks.first() to picks.size }
@@ -418,11 +418,11 @@ class TimeLapse(artwork: File) {
         }
         forgetClips()
         if (!readable) {
-            AppLog.w("ProCraft", "the time-lapse's videos can't be read here: their pictures stay")
+            AppLog.w("HanaCreate", "the time-lapse's videos can't be read here: their pictures stay")
             return
         }
         val gone = core.dropClipFrames()
-        if (gone > 0u) android.util.Log.i("ProCraft", "the time-lapse's videos hold $gone frames: their pictures went")
+        if (gone > 0u) android.util.Log.i("HanaCreate", "the time-lapse's videos hold $gone frames: their pictures went")
     }
 
     /**
@@ -445,12 +445,12 @@ class TimeLapse(artwork: File) {
                     }
                     val picture = core.frameFile((first + k).toUInt())?.let { f -> pictureLook(f, size.first, size.second) }
                     val right = look != null && picture != null && !Yuv.apart(look, picture)
-                    if (!right) AppLog.w("ProCraft", "${File(clip.path).name}'s frame $k of ${it.count} doesn't read back as its picture here")
+                    if (!right) AppLog.w("HanaCreate", "${File(clip.path).name}'s frame $k of ${it.count} doesn't read back as its picture here")
                     right
                 }
             }
         } catch (e: Exception) {
-            AppLog.w("ProCraft", "reading a time-lapse video back", e)
+            AppLog.w("HanaCreate", "reading a time-lapse video back", e)
             false
         }
     }
@@ -511,7 +511,7 @@ class TimeLapse(artwork: File) {
                     }
                 }
             } catch (e: Exception) {
-                AppLog.e("ProCraft", "a time-lapse's video", e)
+                AppLog.e("HanaCreate", "a time-lapse's video", e)
                 frames = 0
             } finally {
                 retriever.release()

@@ -19,7 +19,7 @@ import java.io.InputStream
  * hands it on ([toShare]).
  */
 object AppLog {
-    private const val TAG = "ProCraft"
+    private const val TAG = "HanaCreate"
 
     /** How many of the last runs' ends are told. */
     private const val EXITS = 5
@@ -230,7 +230,7 @@ object AppLog {
         val abi = File(context.applicationInfo.nativeLibraryDir ?: "").name
         fun gb(bytes: Long) = "%.1f GB".format(java.util.Locale.ROOT, bytes / 1e9)
         return buildString {
-            appendLine("ProCraft ${info?.versionName ?: "?"} (version code ${info?.let { androidx.core.content.pm.PackageInfoCompat.getLongVersionCode(it) } ?: "?"}), started ${java.time.Instant.now()}")
+            appendLine("HanaCreate ${info?.versionName ?: "?"} (version code ${info?.let { androidx.core.content.pm.PackageInfoCompat.getLongVersionCode(it) } ?: "?"}), started ${java.time.Instant.now()}")
             appendLine("device: ${Build.MANUFACTURER} ${Build.MODEL} (${Build.DEVICE}), build ${Build.FINGERPRINT}")
             appendLine("Android ${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT}), ABIs ${Build.SUPPORTED_ABIS.joinToString()}; the app's library: $abi")
             appendLine(

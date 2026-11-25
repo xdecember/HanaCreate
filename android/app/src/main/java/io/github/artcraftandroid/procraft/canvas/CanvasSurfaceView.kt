@@ -633,7 +633,7 @@ class CanvasSurfaceView(context: Context, private val vm: CanvasViewModel) : Sur
     }
 
     private companion object {
-        const val TAG = "ProCraft"
+        const val TAG = "HanaCreate"
 
         /** How long a prediction stands with no input after it, milliseconds: a few input intervals. */
         const val PREDICTION_LASTS_MS = 40L

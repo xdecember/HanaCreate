@@ -257,8 +257,8 @@ pub use presets::{
 pub use project::{
     ArtworkInfo, Leaving, PdfBook, export_file_name, read_signature, save_failure_said, write_photo, write_signature,
 };
+pub use project::{ClipOutcome, PagesOutcome, PsdOutcome, import_clip, import_pages, import_psd};
 pub use project::{PackageTimeLapse, artwork_plays, artwork_preview_png, package_time_lapse, preview_side};
-pub use project::{PagesOutcome, PsdOutcome, import_pages, import_psd};
 pub use quick_menu::{
     QuickAction, QuickMenuSet, pen_button_actions, pen_button_actions_saved, pen_button_choices,
     pen_button_plugin_actions, pen_buttons_saved, quick_action_adjusts, quick_action_label, quick_actions_listed,

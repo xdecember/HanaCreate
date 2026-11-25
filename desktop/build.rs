@@ -1,13 +1,8 @@
-//! The desktop app's version is the Android app's (procraft.version in android/gradle.properties,
-//! the one number a release is tagged with), given to the code as PROCRAFT_VERSION. The Windows
-//! .exe carries it with the app's icon (assets/app-icon/procraft.ico, made by
-//! tools/app-icon/make_icon.py) and its name, for Explorer, the task bar and shortcuts.
-
 const PROPERTIES: &str = "../android/gradle.properties";
 
 fn main() {
     println!("cargo:rerun-if-changed={PROPERTIES}");
-    println!("cargo:rerun-if-changed=../assets/app-icon/procraft.ico");
+    println!("cargo:rerun-if-changed=../assets/app-icon/hanacreate.ico");
     let version = std::fs::read_to_string(PROPERTIES)
         .ok()
         .and_then(|text| text.lines().find_map(|l| l.trim().strip_prefix("procraft.version=").map(str::to_owned)))
@@ -36,9 +31,9 @@ fn main() {
             .fold(0u64, |packed, part| (packed << 16) | part.parse::<u64>().unwrap_or(0).min(0xFFFF));
         let mut resource = winresource::WindowsResource::new();
         resource
-            .set_icon("../assets/app-icon/procraft.ico")
-            .set("ProductName", "ProCraft")
-            .set("FileDescription", "ProCraft")
+            .set_icon("../assets/app-icon/hanacreate.ico")
+            .set("ProductName", "HanaCreate")
+            .set("FileDescription", "HanaCreate digital painting and illustration studio")
             .set("ProductVersion", &version)
             .set("FileVersion", &version)
             .set_version_info(winresource::VersionInfo::PRODUCTVERSION, packed)

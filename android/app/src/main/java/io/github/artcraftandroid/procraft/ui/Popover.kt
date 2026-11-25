@@ -25,6 +25,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.ClipOp
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Path
@@ -121,6 +122,15 @@ fun rememberFrost(corner: Dp, glass: BarGlass): Modifier {
         val (left, right) = with(density) { glass.pastLeft.toPx() to glass.pastRight.toPx() }
         val below = with(density) { glass.pastBottom.toPx() }
         box = frostBox(at, c.size.width, c.size.height, left, right, below, with(density) { corner.toPx() })
+    }.drawBehind {
+        val progress = glass.shown.coerceIn(0f, 1f)
+        val start = size.width * (progress * Motion.GLASS_SWEEP_TRAVEL - 0.8f)
+        val sheen = Brush.linearGradient(
+            colors = listOf(Color.Transparent, Pc.MenuInk.copy(alpha = Motion.GLASS_SWEEP_ALPHA), Color.Transparent),
+            start = Offset(start, 0f),
+            end = Offset(start + size.width * 0.8f, size.height),
+        )
+        drawRoundRect(sheen, cornerRadius = CornerRadius(corner.toPx()))
     }
 }
 
@@ -298,6 +308,15 @@ private fun PopoverBody(
                 canvas.restore()
             }
             drawPath(outline, paint)
+            if (backdrops != null) {
+                val start = size.width * (look.alpha.coerceIn(0f, 1f) * Motion.GLASS_SWEEP_TRAVEL - 0.8f)
+                val sheen = Brush.linearGradient(
+                    colors = listOf(Color.Transparent, Pc.MenuInk.copy(alpha = Motion.GLASS_SWEEP_ALPHA), Color.Transparent),
+                    start = Offset(start, 0f),
+                    end = Offset(start + size.width * 0.8f, size.height),
+                )
+                drawPath(outline, sheen)
+            }
         },
     ) {
         val inset = when (side) {

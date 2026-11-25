@@ -103,13 +103,49 @@ fn colour(rgba: u32) -> tiny_skia::Color {
 }
 
 /// `paths` drawn on a clear canvas `width` × `height`: premultiplied RGBA rows, smoothed edges.
-#[cfg(test)]
 pub(crate) fn rasterise(paths: &[DrawPath], width: u32, height: u32) -> Vec<u8> {
     let Some(mut pixmap) = tiny_skia::Pixmap::new(width.max(1), height.max(1)) else {
         return vec![0; width as usize * height as usize * 4];
     };
     draw_paths(&mut pixmap, paths);
     pixmap.take()
+}
+
+pub(crate) fn rasterise_clip_vectors(
+    strokes: &[procraft_engine::clip::ClipVectorStroke],
+    width: u32,
+    height: u32,
+) -> Vec<u8> {
+    let mut paths = Vec::new();
+    for stroke in strokes {
+        if stroke.points.len() < 2 || !stroke.width.is_finite() || stroke.width <= 0.0 {
+            continue;
+        }
+        let segment_count = stroke.points.len() - 1 + usize::from(stroke.closed);
+        for index in 0..segment_count {
+            let first = &stroke.points[index % stroke.points.len()];
+            let second = &stroke.points[(index + 1) % stroke.points.len()];
+            let width_factor = ((first.width_factor + second.width_factor) * 0.5).clamp(0.0, 8.0);
+            let opacity_factor = ((first.opacity_factor + second.opacity_factor) * 0.5).clamp(0.0, 1.0);
+            let segment_width = stroke.width * width_factor;
+            let alpha = (stroke.opacity * opacity_factor * 255.0).round().clamp(0.0, 255.0) as u8;
+            if !segment_width.is_finite() || segment_width <= 0.0 || alpha == 0 {
+                continue;
+            }
+            let rgba = u32::from_be_bytes([stroke.color[0], stroke.color[1], stroke.color[2], alpha]);
+            paths.push(DrawPath {
+                fill: 0,
+                stroke: rgba,
+                width: segment_width,
+                flags: 1,
+                parts: vec![
+                    Part::Move(first.position[0], first.position[1]),
+                    Part::Line(second.position[0], second.position[1]),
+                ],
+            });
+        }
+    }
+    rasterise(&paths, width, height)
 }
 
 /// `paths` drawn over what `pixmap` holds.
@@ -722,6 +758,38 @@ mod tests {
         assert!(text.contains("d=\"M1 1C2 2 3 3 4 4\" fill=\"none\" stroke=\"#0000ff\""), "{text}");
         assert!(text.contains("stroke-linecap=\"round\""));
         assert!(text.ends_with("</svg>\n"));
+    }
+
+    #[test]
+    fn clip_vector_preview_uses_each_point_pressure_and_opacity() {
+        let stroke = procraft_engine::clip::ClipVectorStroke {
+            points: vec![
+                procraft_engine::clip::ClipVectorPoint {
+                    position: [10.0, 20.0],
+                    width_factor: 0.5,
+                    opacity_factor: 1.0,
+                },
+                procraft_engine::clip::ClipVectorPoint {
+                    position: [30.0, 20.0],
+                    width_factor: 0.5,
+                    opacity_factor: 1.0,
+                },
+                procraft_engine::clip::ClipVectorPoint {
+                    position: [50.0, 20.0],
+                    width_factor: 3.0,
+                    opacity_factor: 0.25,
+                },
+            ],
+            color: [255, 0, 0],
+            opacity: 1.0,
+            width: 8.0,
+            closed: false,
+        };
+        let pixels = rasterise_clip_vectors(&[stroke], 64, 40);
+        let alpha = |x: usize, y: usize| pixels[(y * 64 + x) * 4 + 3];
+        assert_eq!(alpha(10, 14), 0);
+        assert!(alpha(50, 14) > 0);
+        assert!(alpha(50, 20) < 255);
     }
 
     #[test]

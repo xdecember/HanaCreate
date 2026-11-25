@@ -30,7 +30,7 @@ fn floating_at(name: &str) -> Option<usize> {
 }
 
 /// What an artwork dragged out of the gallery becomes, and a picture's format when one is wanted.
-pub const DRAG_FORMATS: [&str; 5] = ["ProCraft", "PSD", "JPEG", "PNG", "TIFF"];
+pub const DRAG_FORMATS: [&str; 5] = ["HanaCreate", "PSD", "JPEG", "PNG", "TIFF"];
 pub const DRAG_IMAGE_FORMATS: [&str; 3] = ["JPEG", "PNG", "TIFF"];
 
 pub const RAPID_UNDO_MIN_S: f32 = 0.1;

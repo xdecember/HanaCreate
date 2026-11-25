@@ -295,7 +295,8 @@ fn layer_options(l: &LayerInfo, masked: bool, guided: bool) -> Vec<LayerOptionRo
             row(O::Copy, "Copy", None);
             // a text layer's pixels come from its text, a plugin's layer's from its items: nothing to
             // fill, clear, lock or invert
-            let drawn_from_data = l.text || l.plugin_kind.is_some();
+            let clip_vector = l.plugin_kind.as_deref() == Some("com.hanacreate.clip-vector");
+            let drawn_from_data = l.text || (l.plugin_kind.is_some() && !clip_vector);
             if !drawn_from_data && unlocked {
                 row(O::Fill, "Fill Layer", None);
                 row(O::Clear, "Clear", None);
@@ -313,7 +314,7 @@ fn layer_options(l: &LayerInfo, masked: bool, guided: bool) -> Vec<LayerOptionRo
                     row(O::EditText, "Edit Text", None);
                     row(O::Rasterize, "Rasterize", None);
                 }
-            } else if l.plugin_kind.is_some() {
+            } else if l.plugin_kind.is_some() && !clip_vector {
                 if guided || l.assisted {
                     row(O::DrawingAssist, "Drawing Assist", Some(l.assisted));
                 }

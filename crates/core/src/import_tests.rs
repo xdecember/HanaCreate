@@ -9,7 +9,9 @@ use std::path::{Path, PathBuf};
 use procraft_engine::document::{BlendMode, LayerKind};
 use procraft_engine::formats::{PsdKind, PsdLayer, psd};
 
-use crate::{ArtworkStore, CanvasSession, GalleryEntry, PsdOutcome, import_psd, opening_ended_app};
+use crate::{
+    ArtworkStore, CanvasSession, ClipOutcome, GalleryEntry, PsdOutcome, import_clip, import_psd, opening_ended_app,
+};
 
 /// An empty folder of the test's own.
 fn folder(name: &str) -> PathBuf {
@@ -220,4 +222,81 @@ fn an_artwork_whose_opening_ended_the_app_is_told_when_picked_and_opens_again_wi
     assert!(listed(&store).is_empty());
     crate::open_marks::use_file_on_this_thread(None);
     let _ = fs::remove_dir_all(&root);
+}
+
+#[test]
+#[ignore = "requires HANACREATE_CLIP_VECTOR_TEST_FILE"]
+fn imports_clip_vector_layers_as_visible_raster_content() {
+    let path = std::env::var_os("HANACREATE_CLIP_VECTOR_TEST_FILE").unwrap();
+    let root = folder("clip-vector-import");
+    let store = ArtworkStore::open(root.join("gallery").to_string_lossy().into_owned());
+    let dir = store.new_folder(None);
+    let outcome = import_clip(path.to_string_lossy().into_owned(), dir.clone(), "CLIP vectors".to_owned());
+    assert!(matches!(outcome, ClipOutcome::Imported { rasterized_layers: 3, .. }));
+    let layers = std::fs::read_dir(Path::new(&dir).join("layers")).unwrap();
+    assert_eq!(
+        layers.filter_map(Result::ok).filter(|entry| entry.path().extension().is_some_and(|ext| ext == "png")).count(),
+        4
+    );
+}
+
+#[test]
+#[ignore = "requires HANACREATE_CLIP_TEST_FILE"]
+fn imports_configured_clip_file_into_native_artwork() {
+    let path = std::env::var_os("HANACREATE_CLIP_TEST_FILE").unwrap();
+    let root = folder("clip-import");
+    let store = ArtworkStore::open(root.join("gallery").to_string_lossy().into_owned());
+    let dir = store.new_folder(None);
+    let outcome = import_clip(path.to_string_lossy().into_owned(), dir.clone(), "CLIP import".to_owned());
+    let ClipOutcome::Imported { preserved_vector_layers, source_clip_preserved, .. } = outcome else {
+        panic!("CLIP import outcome: {outcome:?}");
+    };
+    assert!(preserved_vector_layers > 0, "no hybrid vector layers were preserved");
+    assert!(source_clip_preserved, "the source CLIP archive was not retained");
+    assert_eq!(listed(&store), ["CLIP import"]);
+    assert!(Path::new(&dir).join("artwork.json").exists());
+    assert!(Path::new(&dir).join("thumbnail.png").exists());
+    let session = CanvasSession::open(dir.clone()).unwrap();
+    let state = session.shared.lock();
+    assert!(state.doc.width() > 0);
+    assert!(state.doc.height() > 0);
+    assert!(!state.pending_pixels.is_empty());
+    let vector = state
+        .doc
+        .layers()
+        .iter()
+        .find(|layer| layer.plugin.as_ref().is_some_and(|plugin| plugin.kind == "com.hanacreate.clip-vector"))
+        .unwrap();
+    let data = vector.plugin.as_ref().and_then(|plugin| plugin.data.as_deref()).unwrap();
+    assert_eq!(&data[..4], b"HCVD");
+    assert!(Path::new(&dir).join("layers").join(format!("{}.layerdata", vector.id.0)).exists());
+    assert!(Path::new(&dir).join("source.clip").exists());
+    assert_eq!(crate::timelapse::TimeLapse::new(dir.clone()).count(), 12);
+    let vector_id = vector.id.0;
+    drop(state);
+    assert_eq!(session.plugin_layer_kind(vector_id), None);
+    let info = session.layers().into_iter().find(|layer| layer.id == vector_id).unwrap();
+    assert!(!info.locked);
+}
+
+#[test]
+#[ignore = "requires HANACREATE_CLIP_TEST_FILE"]
+fn retains_v1_clip_archive_when_its_time_lapse_is_not_decoded() {
+    let path = std::env::var_os("HANACREATE_CLIP_TEST_FILE").unwrap();
+    let root = folder("clip-v1-archive");
+    let store = ArtworkStore::open(root.join("gallery").to_string_lossy().into_owned());
+    let dir = store.new_folder(None);
+    let outcome = import_clip(path.to_string_lossy().into_owned(), dir.clone(), "CLIP V1".to_owned());
+    let ClipOutcome::Imported {
+        imported_time_lapse_frames, unsupported_time_lapse_records, source_clip_preserved, ..
+    } = outcome
+    else {
+        panic!("CLIP import outcome: {outcome:?}");
+    };
+    assert_eq!(imported_time_lapse_frames, 0);
+    assert_eq!(unsupported_time_lapse_records, 1);
+    assert!(source_clip_preserved);
+    let source = Path::new(&dir).join("source.clip");
+    assert_eq!(fs::metadata(source).unwrap().len(), fs::metadata(path).unwrap().len());
+    assert_eq!(crate::timelapse::TimeLapse::new(dir).count(), 0);
 }

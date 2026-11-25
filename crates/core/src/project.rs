@@ -2615,6 +2615,144 @@ pub fn import_pages(
     PagesOutcome::Imported
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, uniffi::Enum)]
+pub enum ClipOutcome {
+    Imported {
+        approximated_blends: u32,
+        rasterized_layers: u32,
+        unsupported_layers: u32,
+        imported_time_lapse_frames: u32,
+        unsupported_time_lapse_records: u32,
+        unsupported_animation_tracks: u32,
+        preserved_vector_layers: u32,
+        source_clip_preserved: bool,
+    },
+    TooManyLayers {
+        most: u32,
+    },
+    TooLarge,
+    Unsupported,
+    Unreadable,
+}
+
+#[uniffi::export]
+pub fn import_clip(path: String, dir: String, name: String) -> ClipOutcome {
+    let mut artwork = match procraft_engine::clip::ClipArtwork::open(Path::new(&path)) {
+        Ok(artwork) => artwork,
+        Err(procraft_engine::clip::ClipError::TooLarge) => return ClipOutcome::TooLarge,
+        Err(procraft_engine::clip::ClipError::Unsupported(_)) => return ClipOutcome::Unsupported,
+        Err(error) => {
+            log::error!("opening a CLIP document: {error:?}");
+            return ClipOutcome::Unreadable;
+        }
+    };
+    if !artwork.approximated_blends().is_empty() {
+        log::warn!("importing a CLIP document approximated {} blend modes", artwork.approximated_blends().len());
+    }
+    let document = artwork.document().clone();
+    let pixel_layers = document.pixel_layer_ids().count();
+    if pixel_layers > document.layer_cap() {
+        return ClipOutcome::TooManyLayers { most: u32::try_from(document.layer_cap()).unwrap_or(u32::MAX) };
+    }
+    let importing = crate::gallery::Importing::begin(Path::new(&dir));
+    match write_clip_artwork(&mut artwork, Path::new(&dir), name) {
+        Ok(()) => {
+            let (imported_time_lapse_frames, time_lapse_failures) = write_clip_time_lapse(&artwork, Path::new(&dir));
+            let source_size = fs::metadata(&path).map_or(u64::MAX, |metadata| metadata.len());
+            let source_clip_preserved = source_size <= 512 * 1024 * 1024
+                && write_atomically(&Path::new(&dir).join("source.clip"), |target| {
+                    fs::copy(&path, target).map(|_| ()).map_err(|error| file_error("preserving the CLIP source", error))
+                })
+                .is_ok();
+            importing.done();
+            ClipOutcome::Imported {
+                approximated_blends: u32::try_from(artwork.approximated_blends().len()).unwrap_or(u32::MAX),
+                rasterized_layers: artwork.rasterized_layer_count(),
+                unsupported_layers: artwork.unsupported_layer_count(),
+                imported_time_lapse_frames,
+                unsupported_time_lapse_records: artwork
+                    .unsupported_time_lapse_records()
+                    .saturating_add(time_lapse_failures),
+                unsupported_animation_tracks: artwork.unsupported_animation_tracks(),
+                preserved_vector_layers: artwork.vector_source_layer_count(),
+                source_clip_preserved,
+            }
+        }
+        Err(error) => {
+            log::error!("saving an imported CLIP document: {error}");
+            ClipOutcome::Unreadable
+        }
+    }
+}
+
+fn write_clip_time_lapse(artwork: &procraft_engine::clip::ClipArtwork, dir: &Path) -> (u32, u32) {
+    let frames = artwork.time_lapse_frames();
+    if frames.is_empty() {
+        return (0, 0);
+    }
+    let lapse = crate::timelapse::TimeLapse::new(dir.to_string_lossy().into_owned());
+    let mut imported = 0_u32;
+    let mut failures = 0_u32;
+    for frame in frames {
+        let decoded = image::load_from_memory_with_format(frame, image::ImageFormat::Png);
+        let Ok(mut rgba) = decoded.map(|picture| picture.to_rgba8()) else {
+            failures = failures.saturating_add(1);
+            continue;
+        };
+        let (width, height) = rgba.dimensions();
+        for pixel in rgba.pixels_mut() {
+            let [r, g, b, a] = pixel.0;
+            let alpha = u16::from(a);
+            *pixel = image::Rgba([
+                ((u16::from(r) * alpha + 255 * (255 - alpha) + 127) / 255) as u8,
+                ((u16::from(g) * alpha + 255 * (255 - alpha) + 127) / 255) as u8,
+                ((u16::from(b) * alpha + 255 * (255 - alpha) + 127) / 255) as u8,
+                255,
+            ]);
+        }
+        if lapse.keep_frame(rgba.into_raw(), width, height) {
+            imported = imported.saturating_add(1);
+        } else {
+            failures = failures.saturating_add(1);
+            if let Some(problem) = lapse.take_problem() {
+                log::warn!("importing a CLIP time-lapse frame: {problem}");
+            }
+        }
+    }
+    (imported, failures)
+}
+
+fn write_clip_artwork(
+    artwork: &mut procraft_engine::clip::ClipArtwork,
+    dir: &Path,
+    name: String,
+) -> Result<(), MobileError> {
+    let document = artwork.document().clone();
+    let (width, height) = (document.width(), document.height());
+    fs::create_dir_all(dir.join("layers")).map_err(|error| file_error("making the folder", error))?;
+    let mut files = Vec::new();
+    for id in artwork.layers_with_pixels().collect::<Vec<_>>() {
+        let rgba = match artwork.pixels(id).map_err(|error| file_error("reading a CLIP layer", format!("{error:?}")))? {
+            Some(rgba) => rgba,
+            None => match artwork.vector_strokes(id) {
+                Some(strokes) => crate::plugin_canvas::rasterise_clip_vectors(strokes, width, height),
+                None => continue,
+            },
+        };
+        write_atomically(&layer_path(dir, id), |path| write_png(path, width, height, &rgba, &[]))?;
+        files.push((id, Opened::File(layer_path(dir, id))));
+    }
+    if let Some(preview) = artwork.preview() {
+        write_atomically(&dir.join("thumbnail.png"), |path| {
+            fs::write(path, preview).map_err(|error| file_error("writing the thumbnail", error))
+        })?;
+    }
+    let name = if name.trim().is_empty() { "Untitled Artwork".to_owned() } else { name };
+    let session = CanvasSession::with_document(document, name, Vec::new());
+    session.shared.lock().pending_pixels = files;
+    session.save(dir.to_string_lossy().into_owned())
+}
+
 /// How bringing in a PSD went.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, uniffi::Enum)]
 pub enum PsdOutcome {

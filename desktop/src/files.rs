@@ -100,7 +100,7 @@ pub fn app_dir() -> PathBuf {
 
 /// Shows a passing message with an OK button.
 pub fn say(text: &str) {
-    message().set_level(MessageLevel::Info).set_title("ProCraft").set_description(text).show();
+    message().set_level(MessageLevel::Info).set_title("HanaCreate").set_description(text).show();
 }
 
 /// Whether the file at `path` holds brushes, by its name (a zip by what it holds): ours (a brush,
@@ -265,7 +265,7 @@ pub fn keep_brushes(session: &procraft_core::CanvasSession) {
         tell_later(
             "Can't keep the brushes",
             "The brush library couldn't be kept. The disk may be full: brushes brought in or changed \
-             since are lost when ProCraft closes, unless some room is made.",
+             since are lost when HanaCreate closes, unless some room is made.",
         );
     }
 }
@@ -732,7 +732,7 @@ pub fn read_png(path: &Path) -> Result<ThumbnailImage, String> {
 pub fn about() {
     message()
         .set_level(MessageLevel::Info)
-        .set_title("ProCraft")
+        .set_title("HanaCreate")
         .set_description(format!("Version {}", env!("PROCRAFT_VERSION")))
         .show();
 }

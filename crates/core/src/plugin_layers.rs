@@ -1126,7 +1126,11 @@ pub(crate) struct DrawnItems {
 impl State {
     /// The kind of plugin layer `layer` is (`<id>.<key>`), if it is one.
     pub(crate) fn plugin_layer_kind(&self, layer: LayerId) -> Option<&str> {
-        self.doc.layer(layer).and_then(|l| l.plugin.as_ref()).map(|p| p.kind.as_str())
+        self.doc
+            .layer(layer)
+            .and_then(|l| l.plugin.as_ref())
+            .map(|p| p.kind.as_str())
+            .filter(|kind| *kind != "com.hanacreate.clip-vector")
     }
 
     /// Whether `layer` is a plugin's layer that takes no strokes now: its plugin is off or gone, or

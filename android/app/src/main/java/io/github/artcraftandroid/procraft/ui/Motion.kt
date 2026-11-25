@@ -46,6 +46,8 @@ object Motion {
     const val MENU_MS = 300
     const val MENU_START_SCALE = 0.001f
     const val MENU_END_SCALE = 0.8f
+    const val GLASS_SWEEP_ALPHA = 0.055f
+    const val GLASS_SWEEP_TRAVEL = 2f
     val MenuOpen: Easing = CubicBezierEasing(0.26f, 1.22f, 0.39f, 1.01f)
 
     /** A menu closing, and the curve most timed changes take. */

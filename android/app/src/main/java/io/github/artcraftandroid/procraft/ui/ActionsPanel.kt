@@ -156,7 +156,7 @@ fun ActionsPanel(vm: CanvasViewModel, arrowX: Dp, modifier: Modifier = Modifier)
         vm.viewModelScope.launch {
             vm.exportTimeLapse(seconds)?.let { video ->
                 runCatching { shareFile(context, video, "video/mp4") }
-                    .onFailure { io.github.artcraftandroid.procraft.AppLog.e("ProCraft", "sharing the time-lapse video (${video.length()} bytes)", it) }
+                    .onFailure { io.github.artcraftandroid.procraft.AppLog.e("HanaCreate", "sharing the time-lapse video (${video.length()} bytes)", it) }
             }
         }
     }
@@ -336,7 +336,7 @@ fun ActionsPanel(vm: CanvasViewModel, arrowX: Dp, modifier: Modifier = Modifier)
         )
         else -> listOf(
             listOf(
-                Act("About ProCraft") { dialog = "ProCraft" to "Version ${versionName(context)}" },
+                Act("About HanaCreate") { dialog = "HanaCreate" to "Version ${versionName(context)}" },
                 Act("Licences") { dialog = "Licences" to licences(context) },
             ),
             listOf(
@@ -1143,7 +1143,7 @@ fun WrongBuildAlert(vm: CanvasViewModel) {
         Unit.takeIf { vm.wrongBuildNotice },
         title = { "Use the 64-bit version" },
         message = {
-            "This is ProCraft's 32-bit version, for older tablets. This tablet runs the 64-bit one, which newer " +
+            "This is HanaCreate's 32-bit version, for older tablets. This tablet runs the 64-bit one, which newer " +
                 "Android expects: install the file ending in arm64.apk over this one, and your artworks stay."
         },
         action = "Releases",

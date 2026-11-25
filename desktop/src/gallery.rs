@@ -723,7 +723,7 @@ impl Gallery {
     /// The title row laid out for the window (the core's rules): the buttons that fit, the rest
     /// under More, the title on one line shrunk to fit beside them.
     fn header_fit(&mut self, ui: &Ui, screen: Rect) -> GalleryHeaderFit {
-        let title = self.stack.as_ref().map_or("ProCraft", |s| s.1.as_str()).to_owned();
+        let title = self.stack.as_ref().map_or("HanaCreate", |s| s.1.as_str()).to_owned();
         let own = ui.painter().layout_no_wrap(title, Weight::Bold.font(36.0), Color32::WHITE).size();
         // in a stack the name follows the way back; selecting, it stands alone
         let title_x = if self.stack.is_some() && !self.selecting { 60.0 } else { 32.0 };
@@ -754,7 +754,7 @@ impl Gallery {
     fn select_header(&mut self, ui: &Ui, look: &mut Look, screen: Rect) {
         let top = screen.top();
         let fit = self.header_fit(ui, screen);
-        let title = self.stack.as_ref().map_or("ProCraft", |s| s.1.as_str()).to_owned();
+        let title = self.stack.as_ref().map_or("HanaCreate", |s| s.1.as_str()).to_owned();
         title_text(ui, pos2(screen.left() + 32.0, top + 11.0), Align2::LEFT_TOP, &title, argb(TITLE), &fit);
         let painter = ui.painter();
         let done = Rect::from_min_size(pos2(screen.right() - 20.0 - 44.0, top + 10.0), vec2(44.0, 45.0));
@@ -995,7 +995,7 @@ impl Gallery {
     /// field, its name and its version; the round button at the top right (or Escape) closes it.
     fn about(&mut self, ctx: &egui::Context, screen: Rect) {
         if self.mark.is_none() {
-            let bytes = include_bytes!("../../android/app/src/main/res/drawable-nodpi/procraft_mark.png");
+            let bytes = include_bytes!("../../android/app/src/main/res/drawable-nodpi/hanacreate_mark.png");
             let image = crate::files::png_rgba(bytes)
                 .map(|(w, h, rgba)| egui::ColorImage::from_rgba_unmultiplied([w as usize, h as usize], &rgba));
             self.mark = image.map(|i| ctx.load_texture("app mark", i, egui::TextureOptions::LINEAR));
@@ -1015,7 +1015,7 @@ impl Gallery {
                 ui.painter(),
                 pos2(field.center().x, field.bottom() + 12.0),
                 Align2::CENTER_TOP,
-                "ProCraft",
+                "HanaCreate",
                 64.0,
                 Weight::Bold,
                 Color32::WHITE,
@@ -1271,7 +1271,7 @@ impl Gallery {
                 ui,
                 pos2(screen.left() + 32.0, top + 11.0),
                 Align2::LEFT_TOP,
-                "ProCraft",
+                "HanaCreate",
                 argb(TITLE).gamma_multiply(title_in),
                 &fit,
             );

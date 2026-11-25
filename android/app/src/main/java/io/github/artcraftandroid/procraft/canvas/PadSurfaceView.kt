@@ -47,7 +47,7 @@ class PadSurfaceView(context: Context, private val vm: CanvasViewModel) : Surfac
             uncoverWhenDrawn(pad)
         } catch (e: MobileException) {
             NativeWindows.release(id)
-            AppLog.e("ProCraft", "attaching the pad", e)
+            AppLog.e("HanaCreate", "attaching the pad", e)
         }
     }
 

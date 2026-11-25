@@ -1,6 +1,3 @@
-//! ProCraft on the desktop: the engine draws the canvas into the window, and the interface is
-//! drawn over it with egui, on the same device.
-
 // no console window behind the app on Windows (a debug build keeps it, for the log)
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
@@ -408,7 +405,7 @@ struct App {
 
 /// The app's icon, for the window's title bar and the task bar.
 fn window_icon() -> Option<winit::window::Icon> {
-    let picture = image::load_from_memory(include_bytes!("../../assets/app-icon/procraft-256.png")).ok()?;
+    let picture = image::load_from_memory(include_bytes!("../../assets/app-icon/hanacreate-256.png")).ok()?;
     let rgba = picture.into_rgba8();
     let (width, height) = rgba.dimensions();
     winit::window::Icon::from_rgba(rgba.into_raw(), width, height).ok()
@@ -458,7 +455,7 @@ impl ApplicationHandler for App {
             return;
         }
         let attributes = Window::default_attributes()
-            .with_title("ProCraft")
+            .with_title("HanaCreate")
             .with_window_icon(window_icon())
             .with_inner_size(LogicalSize::new(1440.0, 900.0))
             .with_min_inner_size(LogicalSize::new(640.0, 480.0))
@@ -469,8 +466,8 @@ impl ApplicationHandler for App {
         let attributes = {
             use winit::platform::wayland::WindowAttributesExtWayland;
             use winit::platform::x11::WindowAttributesExtX11;
-            let attributes = WindowAttributesExtWayland::with_name(attributes, "procraft", "procraft");
-            WindowAttributesExtX11::with_name(attributes, "procraft", "ProCraft")
+            let attributes = WindowAttributesExtWayland::with_name(attributes, "hanacreate", "hanacreate");
+            WindowAttributesExtX11::with_name(attributes, "hanacreate", "HanaCreate")
         };
         let window = match event_loop.create_window(attributes) {
             Ok(w) => Arc::new(w),
@@ -515,7 +512,7 @@ impl ApplicationHandler for App {
             }
             Err(e) => {
                 log::error!("no GPU for the window:\n{e}");
-                files::tell("ProCraft can't draw", &startup::no_gpu_text(&e));
+                files::tell("HanaCreate can't draw", &startup::no_gpu_text(&e));
                 event_loop.exit();
                 return;
             }
@@ -908,7 +905,7 @@ impl App {
         let edits = session.edits();
         let saved = edits == self.ui.saved_edits || session.edits_saved() == Some(edits);
         let unsaved = if saved { "" } else { " •" };
-        let title = format!("{}{unsaved} — ProCraft", session.name());
+        let title = format!("{}{unsaved} — HanaCreate", session.name());
         if title != self.title {
             screen.window.set_title(&title);
             self.title = title;
@@ -1004,9 +1001,9 @@ impl App {
         if let Some(soon) = soon {
             self.again = Some(self.again.map_or(soon, |due| due.min(soon)));
         }
-        if self.title != "ProCraft" {
-            screen.window.set_title("ProCraft");
-            self.title = "ProCraft".into();
+        if self.title != "HanaCreate" {
+            screen.window.set_title("HanaCreate");
+            self.title = "HanaCreate".into();
         }
         self.zoom_on();
         // Project canvas is black while the gallery shows
@@ -1419,7 +1416,10 @@ impl App {
                 startup::stopped("the graphics device stopped, and it couldn't start itself again");
             }
         } else {
-            files::tell("The graphics device stopped", "ProCraft starts again, with the artwork as it was last saved.");
+            files::tell(
+                "The graphics device stopped",
+                "HanaCreate starts again, with the artwork as it was last saved.",
+            );
             startup::start_again(None);
         }
         event_loop.exit();

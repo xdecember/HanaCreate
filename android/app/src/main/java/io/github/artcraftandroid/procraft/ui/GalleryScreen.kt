@@ -207,7 +207,7 @@ fun GalleryScreen(vm: CanvasViewModel) {
         val dropCell = cellSize(screenWidth, columns)
         // the title row laid out for the window (the shared core's rules): the buttons that fit,
         // the rest under More, and the title on one line, shrunk to fit beside them
-        val titleText = vm.openStack?.name ?: "ProCraft"
+        val titleText = vm.openStack?.name ?: "HanaCreate"
         val titleStyle = androidx.compose.material3.LocalTextStyle.current.merge(androidx.compose.ui.text.TextStyle(fontSize = 36.sp, fontWeight = FontWeight.Bold))
         val titleMeasurer = androidx.compose.ui.text.rememberTextMeasurer()
         val titleSize = remember(titleText, titleStyle) { titleMeasurer.measure(titleText, titleStyle, softWrap = false, maxLines = 1).size }
@@ -248,7 +248,7 @@ fun GalleryScreen(vm: CanvasViewModel) {
             if (selecting) {
                 val pick = picked()
                 SelectHeader(
-                    title = vm.openStack?.name ?: "ProCraft",
+                    title = vm.openStack?.name ?: "HanaCreate",
                     fit = fit,
                     titleHeight = titleHeight,
                     count = pick.entries.size,
@@ -908,7 +908,7 @@ private fun GalleryHeader(
                 // as wide as there is room beside the capsule, the name on one line in it
                 Box(Modifier.padding(start = 32.dp, top = 11.dp).size(fit.titleRoom.dp, titleHeight), contentAlignment = Alignment.CenterStart) {
                     GalleryTitle(
-                        "ProCraft",
+                        "HanaCreate",
                         Pc.GalleryTitle,
                         fit,
                         Modifier.clickable(remember { androidx.compose.foundation.interaction.MutableInteractionSource() }, indication = null, onClick = onAbout),
@@ -2035,12 +2035,12 @@ private fun AboutApp(onRecover: () -> Unit, onShareLog: () -> Unit, onClose: () 
             // the launcher icon: its field, and its picture drawn at the adaptive icon's full size
             Box(Modifier.size(300.dp).clip(RoundedCornerShape(67.dp)).background(AboutIconField), contentAlignment = Alignment.Center) {
                 androidx.compose.foundation.Image(
-                    androidx.compose.ui.res.painterResource(io.github.artcraftandroid.procraft.R.drawable.procraft_mark),
+                    androidx.compose.ui.res.painterResource(io.github.artcraftandroid.procraft.R.drawable.hanacreate_mark),
                     contentDescription = null,
                     modifier = Modifier.requiredSize(450.dp),
                 )
             }
-            Text("ProCraft", color = Color.White, fontSize = 64.sp, fontWeight = FontWeight.Bold, maxLines = 1, modifier = Modifier.padding(top = 12.dp))
+            Text("HanaCreate", color = Color.White, fontSize = 64.sp, fontWeight = FontWeight.Bold, maxLines = 1, modifier = Modifier.padding(top = 12.dp))
             Text(
                 version,
                 color = AboutInk,

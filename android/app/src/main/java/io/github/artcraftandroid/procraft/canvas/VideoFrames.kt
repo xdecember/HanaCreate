@@ -83,7 +83,7 @@ class VideoFrames private constructor(
                 }
             }
         }
-        AppLog.w("ProCraft", "a video's frame $i took longer than ${READ_MOST_NS / 1_000_000} ms to decode")
+        AppLog.w("HanaCreate", "a video's frame $i took longer than ${READ_MOST_NS / 1_000_000} ms to decode")
         next = -1
         return null
     }
@@ -224,7 +224,7 @@ class VideoFrames private constructor(
                 codec.start()
                 return VideoFrames(extractor, codec, shown, matrix, format)
             } catch (e: Exception) {
-                AppLog.w("ProCraft", "a video can't be decoded here: ${File(path).name}", e)
+                AppLog.w("HanaCreate", "a video can't be decoded here: ${File(path).name}", e)
                 runCatching { codec?.release() }
                 extractor.release()
                 return null
@@ -249,7 +249,7 @@ class VideoFrames private constructor(
                 }
                 Checked.Right
             } catch (e: Exception) {
-                AppLog.w("ProCraft", "checking a video", e)
+                AppLog.w("HanaCreate", "checking a video", e)
                 Checked.Unknown
             } finally {
                 frames.close()
